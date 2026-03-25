@@ -52,6 +52,14 @@ class Chatbot:
             bot_reply = handlers[intent](user_input)
             print("Bot:", bot_reply)
 
+
+#day 5 additions are everything below.
+
+# class Chatbot:
+#    def __init__(self):
+#        pass
+#    def run(self):
+
 def main(): # here we made a main function in which we create an instance of the Chatbot class and call its run method. 
     bot = Chatbot()
     bot.run()
