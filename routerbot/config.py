@@ -26,4 +26,3 @@ Rules:
 - Otherwise output chat
 """
 
-chat_history = [] # This list will store the history of the conversation, including both user inputs and bot responses. This allows us to maintain context across multiple interactions, which can be useful for generating more relevant responses from the AI. We do not need history in email summarization or code debugging tasks as they are generally one shot replies and dont need context, so we will only maintain history for general chat interactions.
