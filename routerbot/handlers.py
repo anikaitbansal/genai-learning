@@ -5,7 +5,7 @@ def generate_response(system_prompt, user_input, chat_history, use_history=True)
     messages = [{"role": "system", "content": system_prompt}]
     
     if use_history and chat_history:
-        messages += chat_history
+        messages += chat_history[-6:] # We take the last 6 messages from the chat history to include in the API call, which helps provide context for the AI's response while keeping the input size manageable. This allows the AI to generate more relevant and coherent responses based on recent interactions without overwhelming it with too much historical data.
     
     messages.append({"role": "user", "content": user_input})
 
@@ -21,6 +21,8 @@ def generate_response(system_prompt, user_input, chat_history, use_history=True)
         chat_history.append({"role": "user", "content": user_input})
         chat_history.append({"role": "assistant", "content": bot_reply})
 
+    if len(chat_history) > 11: # We check if the length of the chat history exceeds 10 messages, and if it does, we remove the oldest messages from the beginning of the list. This helps to keep the chat history manageable and prevents it from growing indefinitely, which could lead to performance issues or excessive memory usage. By maintaining a maximum of 10 messages in the history, we ensure that the chatbot can still provide relevant responses based on recent interactions while keeping resource usage in check.
+        chat_history[:] = [chat_history[0]] + chat_history[-10:] # We keep the first message (which is typically the system prompt) and the last 10 messages from the chat history, effectively trimming the history to a maximum of 11 messages. This allows us to maintain important context from the beginning of the conversation while ensuring that we have enough recent messages to provide relevant responses without overwhelming the chatbot with too much historical data.
     return bot_reply
 
     

@@ -1,43 +1,13 @@
-from config import client, MODEL_NAME, classifier_prompt
-from handlers import handle_chat, handle_summarize, handle_email, handle_code
 import argparse
 from memory_manager import MemoryManager
+from chat_service import ChatService
 
-def classify_intent(user_input): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
-       
-    response = client.chat.completions.create(
-        model = MODEL_NAME,
-        messages=[
-            {"role": "system", "content": classifier_prompt},
-            {"role": "user", "content": user_input}
-        ],
-        temperature=0.0 # We set the temperature to 0 to make the output deterministic, ensuring that the same input will always yield the same classified intent. This is important for consistent behavior in intent classification tasks.
-    )
-     
-    raw_intent = response.choices[0].message.content.strip().lower()
-    intent = raw_intent.split()[0]
-
-    valid_intents = ["chat", "summarize", "email", "code"]
-
-    if intent not in valid_intents:
-        intent = "chat"
-
-    return intent
-
-
-# We create a dictionary called handlers that maps each intent label to its corresponding handler function. This allows us to easily call the appropriate function based on the classified intent of the user's message. When the user inputs a message, we classify the intent using the classify_intent function, and then use the handlers dictionary to call the correct function to generate the bot's response.
-handlers = {
-    "chat": handle_chat,
-    "summarize": handle_summarize,
-    "email": handle_email,
-    "code": handle_code
-} 
 
 class Chatbot:
     def __init__(self, debug=False): # debug is a boolean parameter that allows us to enable or disable debug mode when creating an instance of the Chatbot class. When debug
         self.memory = MemoryManager("chat_history.json") # This line creates an instance of the MemoryManager class and assigns
-        self.chat_history = self.memory.load() # This line calls the load method of the MemoryManager instance to load the chat history from the specified JSON file. The loaded chat history is then stored in the chat_history attribute of the Chatbot instance, allowing us to maintain context and continuity in the conversation with the user.
         self.debug = debug 
+        self.service = ChatService(self.memory, debug=self.debug)
 
     def run(self):    
         while True:
@@ -53,17 +23,9 @@ class Chatbot:
                 self.chat_history = self.memory.clear()
                 print("Bot: Memory cleared.")
                 continue
-            
-            # We classify the intent of the user's input using the classify_intent function, which makes an API call to the Groq client with the user's message and the defined classifier_prompt. The response from the API is then processed to extract the classified intent, which is printed to the console for debugging purposes.
-            intent = classify_intent(user_input)
-            if self.debug: # If debug mode is enabled, we print the classified intent and the name of the handler function that will be called to generate the bot's response. This allows us to see how the user's input is being classified and which function is being used to handle it, which can be helpful for troubleshooting and understanding the flow of the program.
-                print("[DEBUG] Intent:", intent)
-                print("[DEBUG] Handler:", handlers[intent].__name__) # .__name__ is a special attribute in Python that returns the name of the function as a string. In this case, it will print the name of the handler function that corresponds to the classified intent, such as "handle_chat", "handle_summarize", "handle_email", or "handle_code". This is useful for debugging purposes to verify that the correct handler function is being called based on the classified intent.
 
-            bot_reply = handlers[intent](user_input, self.chat_history)
+            bot_reply = self.service.process_message(user_input)
             print("Bot:", bot_reply)
-            self.memory.save(self.chat_history)
-
 
 #day 5 additions are everything below.
 

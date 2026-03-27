@@ -2,5 +2,13 @@
     {
         "role": "system",
         "content": "You are a helpful assistant."
+    },
+    {
+        "role": "user",
+        "content": "hi my name is anikait"
+    },
+    {
+        "role": "assistant",
+        "content": "Nice to meet you, Anikait. Is there something I can help you with today?"
     }
 ]
