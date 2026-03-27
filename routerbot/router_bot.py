@@ -1,6 +1,8 @@
 from config import client, MODEL_NAME, classifier_prompt
 from handlers import handle_chat, handle_summarize, handle_email, handle_code
 import argparse
+import json
+import os
 
 def classify_intent(user_input): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
        
@@ -33,14 +35,30 @@ handlers = {
 } 
 
 class Chatbot:
-    def __init__(self, debug=False):
-        self.chat_history = [] # This list will store the history of the conversation, including both user inputs and bot responses. This allows us to maintain context across multiple interactions, which can be useful for generating more relevant responses from the AI. We do not need history in email summarization or code debugging tasks as they are generally one shot replies and dont need context, so we will only maintain history for general chat interactions.
+    def __init__(self, debug=False): # debug is a boolean parameter that allows us to enable or disable debug mode when creating an instance of the Chatbot class. When debug
+        self.history_file = "chat_history.json" # This is the name of the file where we will save the conversation history. By storing the chat history in a JSON file, we can maintain a record of the interactions between the user and the chatbot, which can be useful for analyzing conversations, improving the chatbot's responses, or providing context for future interactions.
+        self.chat_history = self.load_chat_history() # This line calls the load_chat_history method to populate the chat_history attribute with the contents of the history file. If the file exists and contains valid JSON data, it will be loaded into chat_history; otherwise, chat_history will be initialized with a default system message. This allows the chatbot to maintain context across different sessions by preserving the conversation history in a file.
         self.debug = debug
-
+    
+    def load_chat_history(self): # This function loads the chat history from the specified JSON file. It checks if the file exists, and if it does, it reads the contents and parses it as JSON to populate the chat_history list. If the file does not exist, it initializes an empty chat history. This allows us to persist the conversation history across different sessions of the chatbot, enabling it to maintain context even after being restarted.
+        if os.path.exists(self.history_file):
+            try:
+                with open(self.history_file, "r") as file: # This line opens the specified history file in read mode. 
+                    return json.load(file)
+            except Exception:
+                print("[DEBUG] Failed to load chat history. Using default.")
+        return [
+            {"role": "system", "content": "You are a helpful assistant."}
+        ]
+    
+    def save_chat_history(self): # This function saves the current chat history to the specified JSON file. It opens the file in write mode and writes the chat_history list as JSON data. This allows us to persist the conversation history so that it can be loaded again in future sessions, maintaining continuity in the interactions with the chatbot.
+        with open(self.history_file, "w") as file:
+            json.dump(self.chat_history, file, indent=4)
+    
     def run(self):    
         while True:
             user_input = input("User: ")
-            if self.debug:
+            if self.debug: # If debug mode is enabled, we print the user's input to the console for debugging purposes. This allows us to see exactly what the user has entered before we process it, which can be helpful for troubleshooting and understanding the flow of the program.
                 print("[DEBUG] User input:", user_input)
 
             if user_input.lower() == "exit":
@@ -49,12 +67,13 @@ class Chatbot:
             
             # We classify the intent of the user's input using the classify_intent function, which makes an API call to the Groq client with the user's message and the defined classifier_prompt. The response from the API is then processed to extract the classified intent, which is printed to the console for debugging purposes.
             intent = classify_intent(user_input)
-            if self.debug:
+            if self.debug: # If debug mode is enabled, we print the classified intent and the name of the handler function that will be called to generate the bot's response. This allows us to see how the user's input is being classified and which function is being used to handle it, which can be helpful for troubleshooting and understanding the flow of the program.
                 print("[DEBUG] Intent:", intent)
-                print("[DEBUG] Handler:", handlers[intent].__name__)
+                print("[DEBUG] Handler:", handlers[intent].__name__) # .__name__ is a special attribute in Python that returns the name of the function as a string. In this case, it will print the name of the handler function that corresponds to the classified intent, such as "handle_chat", "handle_summarize", "handle_email", or "handle_code". This is useful for debugging purposes to verify that the correct handler function is being called based on the classified intent.
 
             bot_reply = handlers[intent](user_input, self.chat_history)
             print("Bot:", bot_reply)
+            self.save_chat_history()
 
 
 #day 5 additions are everything below.
@@ -64,17 +83,16 @@ class Chatbot:
 #        pass
 #    def run(self):
 
-def main(debug=False): # here we made a main function in which we create an instance of the Chatbot class and call its run method. 
+def main(debug=False): # This is the main function that serves as the entry point of the program. It takes an optional debug parameter that allows us to enable or disable debug mode when running the chatbot. If debug mode is enabled, it prints a message indicating that debug mode is on. Then, it creates an instance of the Chatbot class, passing the debug parameter to its constructor, and calls the run method to start the chatbot's interaction loop.
     if debug:
         print("Debug mode is ON.")
     bot = Chatbot(debug)
     bot.run()
 
-if __name__ == "__main__": #this condtions helps us in a way that when we try to import this file in another file, the code inside this block will not run. It will only run when we execute this file directly
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    args = parser.parse_args()
+if __name__ == "__main__": # This is a common Python idiom that checks if the script is being run directly (as the main program) rather than imported as a module in another script. If this condition is true, it executes the code block that follows, which in this case is responsible for parsing command-line arguments and calling the main function with the appropriate debug flag based on the user's input.
+    parser = argparse.ArgumentParser() # This line creates an ArgumentParser object from the argparse module, which is used to handle command-line arguments. The parser allows us to define what arguments our program accepts and how they should be processed. In this case, we will use it to add a debug flag that can be set when running the script from the command line.
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode") # This line adds a command-line argument called --debug to the parser. The action="store_true" parameter means that if the user includes the --debug flag when running the script, the debug variable will be set to True. If the flag is not included, debug will be False by default. The help parameter provides a description of what the --debug flag does, which will be displayed when the user runs the script with the --help option. This allows users to easily enable debug mode when running the chatbot for troubleshooting or development purposes.
+    args = parser.parse_args() # This line parses the command-line arguments that were defined using the parser. It processes the arguments passed to the script when it is run and stores the results in the args variable. In this case, if the user included the --debug flag, args.debug will be set to True; otherwise, it will be False. This allows us to control whether debug mode is enabled when we call the main function.
 
-    main(debug=args.debug)
+    main(debug=args.debug) # This line calls the main function, passing the value of args.debug as the debug parameter. This means that if the user included the --debug flag when running the script, debug mode will be enabled in the main function, which will then be passed to the Chatbot instance to control whether debug information is printed during the chatbot's operation.
     
