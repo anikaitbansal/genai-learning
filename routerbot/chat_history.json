@@ -2,37 +2,5 @@
     {
         "role": "system",
         "content": "You are a helpful assistant."
-    },
-    {
-        "role": "user",
-        "content": "hi my name is anikait"
-    },
-    {
-        "role": "assistant",
-        "content": "Nice to meet you, Anikait. Is there something I can help you with today?"
-    },
-    {
-        "role": "user",
-        "content": "i am 22 yers old"
-    },
-    {
-        "role": "assistant",
-        "content": "You're 22 years old. What are your interests or hobbies, Anikait?"
-    },
-    {
-        "role": "user",
-        "content": "i live in delhi"
-    },
-    {
-        "role": "assistant",
-        "content": "Delhi is a vibrant city. What do you like to do in your free time in Delhi, Anikait? Do you enjoy exploring the city's history, trying out street food, or visiting the many cultural attractions?"
-    },
-    {
-        "role": "user",
-        "content": "what is my name age and where do i live?"
-    },
-    {
-        "role": "assistant",
-        "content": "Your name is Anikait, you are 22 years old, and you live in Delhi."
     }
 ]

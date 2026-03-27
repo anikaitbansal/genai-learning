@@ -1,8 +1,7 @@
 from config import client, MODEL_NAME, classifier_prompt
 from handlers import handle_chat, handle_summarize, handle_email, handle_code
 import argparse
-import json
-import os
+from memory_manager import MemoryManager
 
 def classify_intent(user_input): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
        
@@ -36,25 +35,10 @@ handlers = {
 
 class Chatbot:
     def __init__(self, debug=False): # debug is a boolean parameter that allows us to enable or disable debug mode when creating an instance of the Chatbot class. When debug
-        self.history_file = "chat_history.json" # This is the name of the file where we will save the conversation history. By storing the chat history in a JSON file, we can maintain a record of the interactions between the user and the chatbot, which can be useful for analyzing conversations, improving the chatbot's responses, or providing context for future interactions.
-        self.chat_history = self.load_chat_history() # This line calls the load_chat_history method to populate the chat_history attribute with the contents of the history file. If the file exists and contains valid JSON data, it will be loaded into chat_history; otherwise, chat_history will be initialized with a default system message. This allows the chatbot to maintain context across different sessions by preserving the conversation history in a file.
-        self.debug = debug
-    
-    def load_chat_history(self): # This function loads the chat history from the specified JSON file. It checks if the file exists, and if it does, it reads the contents and parses it as JSON to populate the chat_history list. If the file does not exist, it initializes an empty chat history. This allows us to persist the conversation history across different sessions of the chatbot, enabling it to maintain context even after being restarted.
-        if os.path.exists(self.history_file):
-            try:
-                with open(self.history_file, "r") as file: # This line opens the specified history file in read mode. 
-                    return json.load(file)
-            except Exception:
-                print("[DEBUG] Failed to load chat history. Using default.")
-        return [
-            {"role": "system", "content": "You are a helpful assistant."}
-        ]
-    
-    def save_chat_history(self): # This function saves the current chat history to the specified JSON file. It opens the file in write mode and writes the chat_history list as JSON data. This allows us to persist the conversation history so that it can be loaded again in future sessions, maintaining continuity in the interactions with the chatbot.
-        with open(self.history_file, "w") as file:
-            json.dump(self.chat_history, file, indent=4)
-    
+        self.memory = MemoryManager("chat_history.json") # This line creates an instance of the MemoryManager class and assigns
+        self.chat_history = self.memory.load() # This line calls the load method of the MemoryManager instance to load the chat history from the specified JSON file. The loaded chat history is then stored in the chat_history attribute of the Chatbot instance, allowing us to maintain context and continuity in the conversation with the user.
+        self.debug = debug 
+
     def run(self):    
         while True:
             user_input = input("User: ")
@@ -64,6 +48,11 @@ class Chatbot:
             if user_input.lower() == "exit":
                 print("Exiting the program.")
                 break
+
+            if user_input.lower() == "reset":
+                self.chat_history = self.memory.clear()
+                print("Bot: Memory cleared.")
+                continue
             
             # We classify the intent of the user's input using the classify_intent function, which makes an API call to the Groq client with the user's message and the defined classifier_prompt. The response from the API is then processed to extract the classified intent, which is printed to the console for debugging purposes.
             intent = classify_intent(user_input)
@@ -73,7 +62,7 @@ class Chatbot:
 
             bot_reply = handlers[intent](user_input, self.chat_history)
             print("Bot:", bot_reply)
-            self.save_chat_history()
+            self.memory.save(self.chat_history)
 
 
 #day 5 additions are everything below.
