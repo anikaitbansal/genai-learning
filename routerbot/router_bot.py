@@ -20,7 +20,7 @@ class Chatbot:
                 break
 
             if user_input.lower() == "reset":
-                self.chat_history = self.memory.clear()
+                self.memory.clear()
                 print("Bot: Memory cleared.")
                 continue
 

@@ -12,8 +12,8 @@ class ChatService:
 
         if self.debug:
             print("[DEBUG] Intent:", intent)
-        else:
-            print("Intent:", intent)
+        #else:
+            #print("Intent:", intent)
 
         handler = handlers.get(intent)
         if not handler:
@@ -26,4 +26,9 @@ class ChatService:
 
         self.memory.save(chat_history)
 
-        return response
+        return {
+            "user_message": message,
+            "bot_reply": response,
+            "intent": intent
+
+        }
