@@ -24,8 +24,12 @@ class Chatbot:
                 print("Bot: Memory cleared.")
                 continue
 
-            bot_reply = self.service.process_message(user_input)
-            print("Bot:", bot_reply)
+            result = self.service.process_message(user_input)
+            print("Bot:", result["bot_reply"])
+
+            if not self.debug:
+                print("Intent:", result["intent"])
+
 
 #day 5 additions are everything below.
 

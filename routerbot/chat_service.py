@@ -1,5 +1,8 @@
+import logging
 from routing import classify_intent, handlers
 
+
+logger = logging.getLogger(__name__)
 
 class ChatService:
     def __init__(self, memory, debug=False):
@@ -7,27 +10,32 @@ class ChatService:
         self.debug = debug
 
     def process_message(self, message):
+        cleaned_message = message.strip()
+
+        if not cleaned_message:
+            raise ValueError("Input message cannot be empty or whitespace.")
+        
         chat_history = self.memory.load()
-        intent = classify_intent(message)
+        intent = classify_intent(cleaned_message)
 
         if self.debug:
-            print("[DEBUG] Intent:", intent)
+            logger.info(f"Intent: {intent}")
         #else:
             #print("Intent:", intent)
 
-        handler = handlers.get(intent)
+        handler = handlers.get(intent, handlers["chat"])
         if not handler:
             handler = handlers["chat"]
 
         if self.debug:
-            print("[DEBUG] handler:", handler.__name__)
+            logger.info(f"Handler: {handler.__name__}")
 
-        response = handler(message, chat_history)
+        response = handler(cleaned_message, chat_history)
 
         self.memory.save(chat_history)
 
         return {
-            "user_message": message,
+            "user_message": cleaned_message,
             "bot_reply": response,
             "intent": intent
 
