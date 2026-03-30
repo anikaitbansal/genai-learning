@@ -9,34 +9,27 @@ class ChatService:
         self.memory = memory
         self.debug = debug
 
-    def process_message(self, message):
+    def process_message(self, message, session_id, request_id):
         cleaned_message = message.strip()
 
         if not cleaned_message:
             raise ValueError("Input message cannot be empty or whitespace.")
-        
+
         chat_history = self.memory.load()
         intent = classify_intent(cleaned_message)
 
-        if self.debug:
-            logger.info(f"Intent: {intent}")
-        #else:
-            #print("Intent:", intent)
+        logger.info("[request_id=%s] Session %s classified intent: %s", request_id, session_id, intent)
 
-        handler = handlers.get(intent, handlers["chat"])
-        if not handler:
-            handler = handlers["chat"]
-
-        if self.debug:
-            logger.info(f"Handler: {handler.__name__}")
-
+        handler = handlers.get(intent, handlers["chat"]) # get the correct handler to what intent is otherwise return handler["chat"].
         response = handler(cleaned_message, chat_history)
 
         self.memory.save(chat_history)
 
+        logger.info("[request_id=%s] Session %s response generated successfully.", request_id, session_id)
+
         return {
             "user_message": cleaned_message,
             "bot_reply": response,
-            "intent": intent
-
+            "intent": intent,
+            "session_id": session_id
         }
