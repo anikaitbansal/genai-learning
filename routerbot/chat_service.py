@@ -9,6 +9,8 @@ class ChatService:
         self.memory = memory
         self.debug = debug
 
+        
+
     def process_message(self, message, session_id, request_id):
         cleaned_message = message.strip()
 

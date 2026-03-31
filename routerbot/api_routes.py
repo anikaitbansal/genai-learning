@@ -1,25 +1,30 @@
-from fastapi import APIRouter, HTTPException, Depends
-from schemas import ChatRequest, ChatResponse, ResetResponse, ResetRequest
-from dependencies import get_memory, build_chat_service
 import logging
-import uuid
+from fastapi import APIRouter, HTTPException, Request
+from schemas import ChatRequest, ChatResponse, ResetResponse, ResetRequest, FeedbackRequest, FeedbackSummaryResponse
+from dependencies import get_memory, build_chat_service
+from feedback_manager import FeedbackManager
+
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("/", tags=["general"])
 def home():
     return {"message": "chatbot is running."}
 
-@router.get("/health")
+
+
+@router.get("/health", tags=["general"])
 def health():
     return {"status": "healthy"}
 
-@router.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest):
 
-    request_id = str(uuid.uuid4())
+
+@router.post("/chat", response_model=ChatResponse, tags=["chat"])
+def chat(request: ChatRequest, http_request: Request):
+
+    request_id = http_request.state.request_id
 
     try:
         logger.info("[request_id=%s] Received message for session: %s", request_id, request.session_id)
@@ -28,8 +33,6 @@ def chat(request: ChatRequest):
         service = build_chat_service(memory)
         
         result = service.process_message(request.message, request.session_id, request_id)
-
-        result["request_id"] = request_id
 
         logger.info("[request_id=%s] Sending response for session: %s", request_id, request.session_id)
         return result
@@ -42,17 +45,99 @@ def chat(request: ChatRequest):
         logger.exception("[request_id=%s] Unexpected error in /chat", request_id)
         raise HTTPException(status_code=500, detail=str(error))
 
-@router.post("/reset", response_model=ResetResponse)
-def reset( request: ResetRequest):
+
+
+@router.post("/reset", response_model=ResetResponse, tags=["chat"])
+def reset( request: ResetRequest, http_request: Request):
+    request_id = http_request.state.request_id
+
     try:
-        logger.info("/reset called for session: %s", request.session_id )
+        logger.info("[request_id=%s] /reset called for session: %s", request_id, request.session_id)
     
         memory = get_memory(request.session_id)
         memory.clear()
 
-        return {"message": "Memory cleared.",
-                "session_id": request.session_id
-                }
-    except Exception as error:
-        raise HTTPException(status_code=500, detail=str(error))
+        logger.info(
+            "[request_id=%s] Memory cleared successfully for session: %s",
+            request_id,
+            request.session_id
+        )
 
+        return {"message": "Memory cleared.",
+                "session_id": request.session_id,
+                }
+    
+    except Exception as error:
+        logger.exception(
+            "[request_id=%s] Unexpected error in /reset",
+            request_id
+        )
+        raise HTTPException(status_code=500, detail=str(error))
+    
+    
+
+@router.post("/feedback", tags=["feedback"])
+def submit_feedback(request: FeedbackRequest, http_request: Request):
+    request_id = http_request.state.request_id
+
+    try:
+        logger.info(
+            "[request_id=%s] Received feedback for session: %s (target_request_id=%s)",
+            request_id,
+            request.session_id,
+            request.request_id
+        )
+
+        feedback_manager = FeedbackManager()
+
+        entry = feedback_manager.create_feedback_entry(
+            session_id=request.session_id,
+            request_id=request.request_id,
+            rating=request.rating,
+            comments=request.comments
+        )
+        feedback_manager.save_feedback(entry)
+
+        logger.info(
+            "[request_id=%s] Feedback saved successfully for target_request_id=%s",
+            request_id,
+            request.request_id
+        )
+
+        return {"message": "Feedback submitted successfully.",
+                }    
+    except Exception as error:
+        logger.exception(
+            "[request_id=%s] Error while storing feedback",
+            request_id
+        )
+        raise HTTPException(status_code=500, detail=str(error))
+    
+
+
+@router.get("/feedback/summary", response_model=FeedbackSummaryResponse, tags=["feedback"])
+def feedback_summary(http_request: Request):
+    request_id = http_request.state.request_id
+
+    try:
+        logger.info(
+            "[request_id=%s] Fetching feedback summary",
+            request_id
+        )
+
+        feedback_manager = FeedbackManager()
+        summary = feedback_manager.get_summary()
+
+        logger.info(
+            "[request_id=%s] Feedback summary generated successfully",
+            request_id
+        )
+
+        return summary
+
+    except Exception as error:
+        logger.exception(
+            "[request_id=%s] Error while generating feedback summary",
+            request_id
+        )
+        raise HTTPException(status_code=500, detail=str(error))

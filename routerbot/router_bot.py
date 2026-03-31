@@ -1,3 +1,4 @@
+import uuid
 import argparse
 from memory_manager import MemoryManager
 from chat_service import ChatService
@@ -8,6 +9,8 @@ class Chatbot:
         self.memory = MemoryManager("chat_history.json") # This line creates an instance of the MemoryManager class and assigns
         self.debug = debug 
         self.service = ChatService(self.memory, debug=self.debug)
+
+
 
     def run(self):    
         while True:
@@ -23,8 +26,9 @@ class Chatbot:
                 self.memory.clear()
                 print("Bot: Memory cleared.")
                 continue
-
-            result = self.service.process_message(user_input)
+            
+            request_id = str(uuid.uuid4()) 
+            result = self.service.process_message(user_input, "cli-session", request_id)
             print("Bot:", result["bot_reply"])
 
             if not self.debug:

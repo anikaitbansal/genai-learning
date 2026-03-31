@@ -35,6 +35,8 @@ def handle_chat(user_input, chat_history): #  this is a function that takes the 
         use_history=True
     )
 
+
+
 def handle_summarize(user_input, chat_history): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
     return generate_response(
         "You summarize text clearly and concisely. Use previous context if the user is referring to earlier text.",
@@ -43,6 +45,8 @@ def handle_summarize(user_input, chat_history): #  this is a function that takes
         use_history=True
     )
 
+
+
 def handle_email(user_input, chat_history): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
     return generate_response(
         "You are a professional email writer. If the user is refining a previously written email, use conversation context.",
@@ -50,6 +54,8 @@ def handle_email(user_input, chat_history): #  this is a function that takes the
         chat_history,
         use_history=True
     )
+
+
  
 
 def handle_code(user_input, chat_history): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
