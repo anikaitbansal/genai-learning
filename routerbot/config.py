@@ -4,6 +4,9 @@ client = Groq() #This creates the connection between your Python code and the Gr
 
 MODEL_NAME = "llama-3.1-8b-instant"
 
+RAG_KNOWLEDGE_FILE = "knowledge_base.json"
+RAG_TOP_K = 3
+RAG_MIN_SCORE = 2
 
 # This code sets up a simple chatbot that classifies user input into different intents (chat, summarize, email, code) and handles each intent with a specific function. The conversation history is maintained to provide context for the AI's responses. The user can exit the program by typing "exit".
 classifier_prompt = """You are a strict intent classifier.

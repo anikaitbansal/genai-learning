@@ -1,9 +1,9 @@
 import logging
 from fastapi import APIRouter, HTTPException, Request
-from schemas import ChatRequest, ChatResponse, ResetResponse, ResetRequest, FeedbackRequest, FeedbackSummaryResponse
+from schemas import ChatRequest, ChatResponse, ResetResponse, ResetRequest, FeedbackRequest, FeedbackSummaryResponse, BuildKnowledgeBaseResponse
 from dependencies import get_memory, build_chat_service
 from feedback_manager import FeedbackManager
-
+from build_knowledge_base import build_knowledge_base
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +32,14 @@ def chat(request: ChatRequest, http_request: Request):
         memory = get_memory(request.session_id)
         service = build_chat_service(memory)
         
-        result = service.process_message(request.message, request.session_id, request_id)
-
+        result = service.process_message(
+            request.message,
+            request.session_id,
+            request_id,
+            use_rag=request.use_rag,
+            debug=request.debug
+        )
+        
         logger.info("[request_id=%s] Sending response for session: %s", request_id, request.session_id)
         return result
     
@@ -74,7 +80,7 @@ def reset( request: ResetRequest, http_request: Request):
         )
         raise HTTPException(status_code=500, detail=str(error))
     
-    
+
 
 @router.post("/feedback", tags=["feedback"])
 def submit_feedback(request: FeedbackRequest, http_request: Request):
@@ -138,6 +144,35 @@ def feedback_summary(http_request: Request):
     except Exception as error:
         logger.exception(
             "[request_id=%s] Error while generating feedback summary",
+            request_id
+        )
+        raise HTTPException(status_code=500, detail=str(error))
+    
+
+
+@router.post("/knowledge-base/rebuild", response_model=BuildKnowledgeBaseResponse, tags=["rag"])
+def rebuild_knowledge_base(http_request: Request):
+    request_id = http_request.state.request_id
+
+    try:
+        logger.info(
+            "[request_id=%s] Rebuilding knowledge base",
+            request_id
+        )
+
+        result = build_knowledge_base()
+
+        logger.info(
+            "[request_id=%s] Knowledge base rebuilt successfully with %s chunks",
+            request_id,
+            result["total_chunks"]
+        )
+
+        return result
+
+    except Exception as error:
+        logger.exception(
+            "[request_id=%s] Error while rebuilding knowledge base",
             request_id
         )
         raise HTTPException(status_code=500, detail=str(error))
