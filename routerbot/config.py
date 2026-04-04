@@ -6,7 +6,8 @@ MODEL_NAME = "llama-3.1-8b-instant"
 
 RAG_KNOWLEDGE_FILE = "knowledge_base.json"
 RAG_TOP_K = 3
-RAG_MIN_SCORE = 2
+EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+RAG_SIMILARITY_THRESHOLD = 0.30
 
 # This code sets up a simple chatbot that classifies user input into different intents (chat, summarize, email, code) and handles each intent with a specific function. The conversation history is maintained to provide context for the AI's responses. The user can exit the program by typing "exit".
 classifier_prompt = """You are a strict intent classifier.
@@ -17,8 +18,8 @@ email
 code
 
 Rules:
-- Output only one word
 - Allowed outputs are only: chat, summarize, email, code
+- return only one label
 - Do not explain
 - Do not add punctuation
 - Do not add extra words

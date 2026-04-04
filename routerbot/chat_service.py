@@ -1,5 +1,4 @@
 import logging
-from unittest import result
 from routing import classify_intent, handlers
 from retriever import SimpleRetriever
 from config import RAG_TOP_K
@@ -36,14 +35,14 @@ class ChatService:
             rag_used = len(retrieved_chunks) > 0
 
             logger.info(
-                "[request_id=%s] Session %s retrieval returned %s chunks",
+                "[request_id=%s] Session %s vector retrieval returned %s chunks",
                 request_id,
                 session_id,
                 len(retrieved_chunks)
                 )
         else:
             logger.info(
-                "[request_id=%s] Session %s RAG not used or no relevant chunks found.",
+                "[request_id=%s] Session %s RAG disabled for this request.",
                     request_id,
                     session_id
                 )
@@ -68,7 +67,7 @@ class ChatService:
             "rag_used": rag_used,
         }
 
-        if debug:
+        if debug or self.debug:
             result["retrieved_chunks"] = retrieved_chunks
 
         return result

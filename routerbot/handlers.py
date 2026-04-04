@@ -7,13 +7,17 @@ def build_rag_prompt(base_prompt, retrieved_chunks):
     context_lines = []
     for index, chunk in enumerate(retrieved_chunks, start=1):
         context_lines.append(f"Context {index}:\nTitle: {chunk['title']}\nContent: {chunk['content']}")
+    
     joined_context = "\n\n".join(context_lines)
-    return (f"{base_prompt}\n\n"
-            f"Use the retrieved context below when it is relevant to the user's question.\n"
-            f"If the context is relevant, prioritize it.\n"
-            f"If the context is not relevant, answer normally.\n\n"
-            f"Retrieved Context:\n{joined_context}"
-        )
+    
+    return (
+        f"{base_prompt}\n\n"
+        f"Use the retrieved context below when it is relevant to the user's question.\n"
+        f"Answer accurately based on the context, but explain in your own words.\n"
+        f"Do not copy the context word-for-word unless the user asks for an exact quote.\n"
+        f"If the retrieved context is not relevant, answer normally.\n\n"
+        f"Retrieved Context:\n{joined_context}"
+    )
 
 
             
@@ -22,7 +26,7 @@ def generate_response(system_prompt, user_input, chat_history, use_history=True,
     messages = [{"role": "system", "content": final_system_prompt}]
     
     if use_history and chat_history:
-        messages += chat_history[-6:] # We take the last 6 messages from the chat history to include in the API call, which helps provide context for the AI's response while keeping the input size manageable. This allows the AI to generate more relevant and coherent responses based on recent interactions without overwhelming it with too much historical data.
+        messages += chat_history[-10:] # We take the last 6 messages from the chat history to include in the API call, which helps provide context for the AI's response while keeping the input size manageable. This allows the AI to generate more relevant and coherent responses based on recent interactions without overwhelming it with too much historical data.
     
     messages.append({"role": "user", "content": user_input})
 
