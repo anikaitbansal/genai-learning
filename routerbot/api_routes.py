@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, HTTPException, Request
 from schemas import ChatRequest, ChatResponse, ResetResponse, ResetRequest, FeedbackRequest, FeedbackSummaryResponse, BuildKnowledgeBaseResponse
-from dependencies import get_memory, build_chat_service
+from dependencies import get_memory, build_chat_service, reload_retriever
 from feedback_manager import FeedbackManager
 from build_knowledge_base import build_knowledge_base
 
@@ -161,6 +161,7 @@ def rebuild_knowledge_base(http_request: Request):
         )
 
         result = build_knowledge_base()
+        reload_retriever()
 
         logger.info(
             "[request_id=%s] Knowledge base rebuilt successfully | documents=%s | chunks=%s | file=%s",

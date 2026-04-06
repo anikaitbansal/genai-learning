@@ -2,13 +2,16 @@ import uuid
 import argparse
 from memory_manager import MemoryManager
 from chat_service import ChatService
+from retriever import FAISSRetriever
+
+retriever = FAISSRetriever()
 
 
 class Chatbot:
     def __init__(self, debug=False): # debug is a boolean parameter that allows us to enable or disable debug mode when creating an instance of the Chatbot class. When debug
         self.memory = MemoryManager("chat_history.json") # This line creates an instance of the MemoryManager class and assigns
         self.debug = debug 
-        self.service = ChatService(self.memory, debug=self.debug)
+        self.service = ChatService(self.memory,retriever=retriever, debug=self.debug)
 
 
 
