@@ -33,12 +33,20 @@ class ChatService:
             retrieved_chunks = self.retriever.retrieve(cleaned_message, top_k=RAG_TOP_K)
             rag_used = len(retrieved_chunks) > 0
 
-            logger.info(
-                "[request_id=%s] Session %s vector retrieval returned %s chunks",
-                request_id,
-                session_id,
-                len(retrieved_chunks)
+            if rag_used:
+                logger.info(
+                    "[request_id=%s] Session %s vector retrieval returned %s chunks after threshold filtering",
+                    request_id,
+                    session_id,
+                    len(retrieved_chunks)
+                    )
+            else:
+                logger.info(
+                    "[request_id=%s] Session %s no relevant chunks found after threshold filtering",
+                    request_id,
+                    session_id
                 )
+
         else:
             logger.info(
                 "[request_id=%s] Session %s RAG disabled for this request.",

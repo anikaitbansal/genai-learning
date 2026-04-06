@@ -46,5 +46,5 @@ def reload_retriever():
 
 
 def build_chat_service(memory):
-    return ChatService(memory, retriever = get_retriever, debug=DEBUG_MODE)
+    return ChatService(memory, retriever = get_retriever(), debug=DEBUG_MODE)
     
