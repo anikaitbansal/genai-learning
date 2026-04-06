@@ -1,49 +1,59 @@
 import json
 import os
-import re
-from config import RAG_KNOWLEDGE_FILE, RAG_SIMILARITY_THRESHOLD
-from embeddings_utils import embed_text, cosine_similarity
+import faiss
+import numpy as np
+from config import RAG_METADATA_FILE, FAISS_INDEX_FILE, RAG_TOP_K
+from embeddings_utils import embed_text
 
 
-class SimpleRetriever:
-    def __init__(self, knowledge_file=RAG_KNOWLEDGE_FILE, similarity_threshold = RAG_SIMILARITY_THRESHOLD):
-        self.knowledge_file = knowledge_file
-        self.similarity_threshold = similarity_threshold
+class FAISSRetriever:
+    def __init__(self):
+        self.metadata = self.load_metadata()
+        self.index = self.load_index()
 
-    def load_knowledge_base(self):
-        if not os.path.exists(self.knowledge_file):
+    def load_metadata(self):
+        if not os.path.exists(RAG_METADATA_FILE):
             return []
 
-        with open(self.knowledge_file, "r", encoding="utf-8") as file:
+        with open(RAG_METADATA_FILE, "r", encoding="utf-8") as file:
             return json.load(file)
-
-
-
-    def retrieve(self, query, top_k=3):
-        knowledge_base = self.load_knowledge_base()
-
-        if not knowledge_base:
-            return []
         
+
+    def load_index(self):
+        if not os.path.exists(FAISS_INDEX_FILE):
+            return None
+
+        return faiss.read_index(FAISS_INDEX_FILE)
+
+
+
+    def retrieve(self, query, top_k = RAG_TOP_K):
+
+        if not self.metadata or self.index is None:
+            return []
+
         query_embedding = embed_text(query)
-        scored_entries = []
+        query_vector = np.array([query_embedding], dtype="float32")
 
-        for entry in knowledge_base:
-            entry_embedding = entry.get("embedding",[])
+        # normalize for cosine similarity
+        faiss.normalize_L2(query_vector)
 
-            if not isinstance(entry_embedding, list) or not entry_embedding:
+        distances, indices = self.index.search(query_vector, top_k)
+
+        results = []
+
+
+        for score, idx in zip(distances[0], indices[0]):
+            if idx < 0 or idx >= len(self.metadata):
                 continue
-            similarity = cosine_similarity(query_embedding, entry_embedding)
 
-            if similarity >= self.similarity_threshold:
-                scored_entries.append(
-                    {
-                        "id": entry.get("id"),
-                        "title": entry.get("title"),
-                        "content": entry.get("content"),
-                        "score": round(similarity, 4)
-                    }
-                )
+            chunk = self.metadata[idx]
 
-        scored_entries.sort(key=lambda item: item["score"], reverse=True) # filtering 
-        return scored_entries[:top_k] # lambda is an anonymous function that takes an item  where item corresponds to entry in jason and returns its score for sorting purposes.
+            results.append({
+                "id": chunk["id"],
+                "title": chunk["title"],
+                "content": chunk["content"],
+                "score": round(float(score), 4)
+            })
+
+        return results
