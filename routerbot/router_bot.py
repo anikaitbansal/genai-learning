@@ -8,7 +8,7 @@ retriever = FAISSRetriever()
 
 
 def read_multiline_input():
-    print("User (type DONE on a new line to finish):")
+    print("User (type DONE on a new line to finish or exit to quit):")
     lines = []
 
     while True:
