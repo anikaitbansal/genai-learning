@@ -1,6 +1,7 @@
 import logging
 from routing import classify_intent, handlers
 from config import RAG_TOP_K
+from chat_log_repository import ChatLogRepository
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +10,9 @@ class ChatService:
         self.memory = memory
         self.debug = debug
         self.retriever = retriever
+        self.chat_log_repository = ChatLogRepository()
         
+
 
     def process_message(self, message, session_id, request_id, use_rag=True, debug=False):
         cleaned_message = message.strip()
@@ -59,6 +62,15 @@ class ChatService:
         response = handler(cleaned_message, chat_history, retrieved_chunks=retrieved_chunks)
 
         self.memory.save(chat_history)
+
+        self.chat_log_repository.save_chat_log(
+            session_id=session_id,
+            request_id=request_id,
+            user_message=cleaned_message,
+            bot_reply=response,
+            intent=intent,
+            rag_used=rag_used
+        )
 
         logger.info(
             "[request_id=%s] Session %s response generated successfully.", 
