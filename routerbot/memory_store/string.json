@@ -5,18 +5,18 @@
     },
     {
         "role": "user",
-        "content": "hi, my name is anikait"
+        "content": "hi my name is anikait"
     },
     {
         "role": "assistant",
-        "content": "Nice to meet you, Anikait. How can I assist you today?"
+        "content": "Nice to meet you, Anikait. Is there something I can help you with today?"
     },
     {
         "role": "user",
-        "content": "what time is it in india right now"
+        "content": "yeah what can you tell me about RAG?"
     },
     {
         "role": "assistant",
-        "content": "However, I'm a large language model, I don't have real-time access to the current time. But I can suggest a few options to help you find out the current time in India.\n\n1. You can check a world clock website or app, such as WorldTimeBuddy or TimeAndDate, which can show you the current time in different cities and countries, including India.\n2. If you know the city or state in India, you can check the local time by searching online or checking a local news website.\n3. If you're in a different time zone, you can also check the current time in India by using a time zone converter tool.\n\nTo give you a rough estimate, India is in the UTC+5:30 time zone, which is 5 hours and 30 minutes ahead of Coordinated Universal Time (UTC). However, please note that India observes daylight saving time (DST) in some states, which can affect the local time.\n\nIf you need more specific information, please let me know, and I'll do my best to help."
+        "content": "Nice to meet you, Anikait. RAG stands for Retrieval-Augmented Generation, which is a technique used to improve chatbot answers by first retrieving relevant information from a knowledge source and then generating a final response based on that information. This approach can lead to more accurate and informative answers. Would you like to know more about how it works or its applications?"
     }
 ]

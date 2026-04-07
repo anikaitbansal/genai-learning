@@ -1,4 +1,12 @@
-from config import client, MODEL_NAME
+from config import MODEL_NAME
+from langchain_groq import ChatGroq
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+llm = ChatGroq(
+    model = MODEL_NAME,
+    temperature = 0.2
+)
 
 def build_rag_prompt(base_prompt, retrieved_chunks):
     if not retrieved_chunks:
@@ -24,20 +32,34 @@ def build_rag_prompt(base_prompt, retrieved_chunks):
             
 def generate_response(system_prompt, user_input, chat_history, use_history=True, retrieved_chunks=None): #  this is a function that generates a response from the AI based on the provided system prompt, user input, and optional chat history. It constructs the messages for the API call, including the system prompt and user input, and optionally includes the chat history if provided. The function then makes an API call to the Groq client to get the AI's response, which is returned as a string.
     final_system_prompt = build_rag_prompt(system_prompt, retrieved_chunks or [])
-    messages = [{"role": "system", "content": final_system_prompt}]
-    
-    if use_history and chat_history:
-        messages += chat_history[-10:] # We take the last 6 messages from the chat history to include in the API call, which helps provide context for the AI's response while keeping the input size manageable. This allows the AI to generate more relevant and coherent responses based on recent interactions without overwhelming it with too much historical data.
-    
-    messages.append({"role": "user", "content": user_input})
 
-    response = client.chat.completions.create(
-        model= MODEL_NAME,
-        messages=messages,
-        temperature=0.2
+    # Build history text (simple conversion)
+    history_text = ""
+    if use_history and chat_history:
+        for msg in chat_history:
+            history_text += f"{msg['role']}: {msg['content']}\n"
+
+
+    # Create prompt template
+    prompt = ChatPromptTemplate.from_template(
+        "{system_prompt}\n\n"
+        "Chat History:\n{history}\n\n"
+        "User: {input}\n"
+        "Assistant:"
     )
 
-    bot_reply = response.choices[0].message.content.strip()
+
+    # Create chain
+    chain = prompt | llm | StrOutputParser() 
+
+    
+    # Run chain
+    bot_reply = chain.invoke({
+        "system_prompt": final_system_prompt,
+        "history": history_text,
+        "input": user_input
+    })
+
 
     if use_history:
         chat_history.append({"role": "user", "content": user_input})
