@@ -7,6 +7,19 @@ from retriever import FAISSRetriever
 retriever = FAISSRetriever()
 
 
+def read_multiline_input():
+    print("User (type DONE on a new line to finish):")
+    lines = []
+
+    while True:
+        line = input()
+        if line.strip() == "DONE":
+            break
+        lines.append(line)
+
+    return "\n".join(lines).strip()
+
+
 class Chatbot:
     def __init__(self, debug=False): # debug is a boolean parameter that allows us to enable or disable debug mode when creating an instance of the Chatbot class. When debug
         self.memory = MemoryManager("chat_history.json") # This line creates an instance of the MemoryManager class and assigns
@@ -17,7 +30,7 @@ class Chatbot:
 
     def run(self):    
         while True:
-            user_input = input("User: ")
+            user_input = read_multiline_input()
             if self.debug: # If debug mode is enabled, we print the user's input to the console for debugging purposes. This allows us to see exactly what the user has entered before we process it, which can be helpful for troubleshooting and understanding the flow of the program.
                 print("[DEBUG] User input:", user_input)
 
