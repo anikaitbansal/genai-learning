@@ -8,13 +8,36 @@ llm = ChatGroq(
     temperature = 0.2
 )
 
+
+SYSTEM_PROMPTS = {
+    "chat": "You are a helpful assistant. Use previous conversation context when relevant.",
+    "summarize": "You summarize text clearly and concisely. Use previous context if the user is referring to earlier text.",
+    "email": "You are a professional email writer. If the user is refining a previously written email, use conversation context.",
+    "code": "You help debug and explain code clearly. Use previous conversation context if the user is referring to earlier code."
+}
+
+# Create prompt template
+RESPONSE_PROMPT = ChatPromptTemplate.from_template(
+    "{system_prompt}\n\n"
+    "Chat History:\n{history}\n\n"
+    "User: {input}\n"
+    "Assistant:"
+)
+
+
+output_parser = StrOutputParser()
+
 def build_rag_prompt(base_prompt, retrieved_chunks):
     if not retrieved_chunks:
         return base_prompt
 
     context_lines = []
     for index, chunk in enumerate(retrieved_chunks, start=1):
-        context_lines.append(f"Context {index}:\nTitle: {chunk['title']}\nContent: {chunk['content']}")
+        context_lines.append(
+            f"Context {index}:\n"
+            f"Title: {chunk['title']}\n"
+            f"Content: {chunk['content']}"
+            )
     
     joined_context = "\n\n".join(context_lines)
     
@@ -29,36 +52,37 @@ def build_rag_prompt(base_prompt, retrieved_chunks):
     )
 
 
+
+def build_history_text(chat_history, use_history=True):
+
+    # Build history text
+    if not use_history or not chat_history:
+        return ""
+    
+    history_lines = []
+    for message in chat_history:
+        history_lines.append(f"{message['role']}: {message['content']}")
+
+    return "\n".join(history_lines)
+
+
             
 def generate_response(system_prompt, user_input, chat_history, use_history=True, retrieved_chunks=None): #  this is a function that generates a response from the AI based on the provided system prompt, user input, and optional chat history. It constructs the messages for the API call, including the system prompt and user input, and optionally includes the chat history if provided. The function then makes an API call to the Groq client to get the AI's response, which is returned as a string.
+    
     final_system_prompt = build_rag_prompt(system_prompt, retrieved_chunks or [])
-
-    # Build history text (simple conversion)
-    history_text = ""
-    if use_history and chat_history:
-        for msg in chat_history:
-            history_text += f"{msg['role']}: {msg['content']}\n"
-
-
-    # Create prompt template
-    prompt = ChatPromptTemplate.from_template(
-        "{system_prompt}\n\n"
-        "Chat History:\n{history}\n\n"
-        "User: {input}\n"
-        "Assistant:"
-    )
-
+    
+    history_text = build_history_text(chat_history, use_history=use_history)
 
     # Create chain
-    chain = prompt | llm | StrOutputParser() 
+    chain = RESPONSE_PROMPT | llm | output_parser
 
-    
     # Run chain
     bot_reply = chain.invoke({
         "system_prompt": final_system_prompt,
         "history": history_text,
         "input": user_input
     })
+
 
 
     if use_history:
@@ -73,7 +97,7 @@ def generate_response(system_prompt, user_input, chat_history, use_history=True,
 
 def handle_chat(user_input, chat_history, retrieved_chunks=None): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
     return generate_response(
-        "You are a helpful assistant. Use previous conversation context when relevant.",
+        SYSTEM_PROMPTS["chat"],
         user_input,
         chat_history,
         use_history=True,
@@ -84,7 +108,7 @@ def handle_chat(user_input, chat_history, retrieved_chunks=None): #  this is a f
 
 def handle_summarize(user_input, chat_history, retrieved_chunks=None): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
     return generate_response(
-        "You summarize text clearly and concisely. Use previous context if the user is referring to earlier text.",
+        SYSTEM_PROMPTS["summarize"],
         user_input,
         chat_history,
         use_history=True,
@@ -95,7 +119,7 @@ def handle_summarize(user_input, chat_history, retrieved_chunks=None): #  this i
 
 def handle_email(user_input, chat_history, retrieved_chunks=None): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
     return generate_response(
-        "You are a professional email writer. If the user is refining a previously written email, use conversation context.",
+        SYSTEM_PROMPTS["email"],
         user_input,
         chat_history,
         use_history=True,
@@ -107,7 +131,7 @@ def handle_email(user_input, chat_history, retrieved_chunks=None): #  this is a 
 
 def handle_code(user_input, chat_history, retrieved_chunks=None): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
     return generate_response(
-        "You help debug and explain code clearly. Use previous conversation context if the user is referring to earlier code.",
+        SYSTEM_PROMPTS["code"],
         user_input,
         chat_history,
         use_history=True,
