@@ -23,14 +23,25 @@ def health():
 
 @router.post("/chat", response_model=ChatResponse, tags=["chat"])
 def chat(request: ChatRequest, http_request: Request):
-
     request_id = http_request.state.request_id
 
     try:
-        logger.info("[request_id=%s] Received message for session: %s", request_id, request.session_id)
-        
+        logger.info(
+            "[request_id=%s] endpoint=/chat stage=request_received session_id=%s message_length=%s use_rag=%s debug=%s",
+            request_id,
+            request.session_id,
+            len(request.message.strip()),
+            request.use_rag,
+            request.debug
+        )      
+
         memory = get_memory(request.session_id)
         service = build_chat_service(memory)
+        logger.info(
+            "[request_id=%s] endpoint=/chat stage=service_call_start session_id=%s",
+            request_id,
+            request.session_id
+        )
         
         result = service.process_message(
             request.message,
@@ -40,15 +51,29 @@ def chat(request: ChatRequest, http_request: Request):
             debug=request.debug
         )
         
-        logger.info("[request_id=%s] Sending response for session: %s", request_id, request.session_id)
+
+        logger.info(
+            "[request_id=%s] endpoint=/chat stage=service_call_done session_id=%s intent=%s rag_used=%s response_length=%s",
+            request_id,
+            request.session_id,
+            result["intent"],
+            result["rag_used"],
+            len(result["bot_reply"])
+        )
+
+        logger.info(
+            "[request_id=%s] endpoint=/chat stage=response_sent session_id=%s",
+            request_id,
+            request.session_id
+        )
         return result
     
     except ValueError as error:
-        logger.exception("[request_id=%s] Validation error in /chat", request_id)
+        logger.exception("[request_id=%s] endpoint=/chat stage=validation_error", request_id)
         raise HTTPException(status_code=400, detail=str(error))
 
     except Exception as error:
-        logger.exception("[request_id=%s] Unexpected error in /chat", request_id)
+        logger.exception("[request_id=%s] endpoint=/chat stage=unexpected_error", request_id)
         raise HTTPException(status_code=500, detail=str(error))
 
 
@@ -65,13 +90,21 @@ def chat_form(
 
     try:
         logger.info(
-            "[request_id=%s] Received form message for session: %s",
+            "[request_id=%s] endpoint=/chat-form stage=request_received session_id=%s message_length=%s use_rag=%s debug=%s",
             request_id,
-            session_id
+            session_id,
+            len(message.strip()),
+            use_rag,
+            debug
         )
 
         memory = get_memory(session_id)
         service = build_chat_service(memory)
+        logger.info(
+            "[request_id=%s] endpoint=/chat-form stage=service_call_start session_id=%s",
+            request_id,
+            session_id
+        )
 
         result = service.process_message(
             message,
@@ -81,19 +114,29 @@ def chat_form(
             debug=debug
         )
 
+
         logger.info(
-            "[request_id=%s] Sending form response for session: %s",
+            "[request_id=%s] endpoint=/chat-form stage=service_call_done session_id=%s intent=%s rag_used=%s response_length=%s",
+            request_id,
+            session_id,
+            result["intent"],
+            result["rag_used"],
+            len(result["bot_reply"])
+        )
+
+        logger.info(
+            "[request_id=%s] endpoint=/chat-form stage=response_sent session_id=%s",
             request_id,
             session_id
         )
         return result
 
     except ValueError as error:
-        logger.exception("[request_id=%s] Validation error in /chat-form", request_id)
+        logger.exception("[request_id=%s] endpoint=/chat-form stage=validation_error", request_id)
         raise HTTPException(status_code=400, detail=str(error))
 
     except Exception as error:
-        logger.exception("[request_id=%s] Unexpected error in /chat-form", request_id)
+        logger.exception("[request_id=%s] endpoint=/chat-form stage=unexpected_error", request_id)
         raise HTTPException(status_code=500, detail=str(error))
 
 

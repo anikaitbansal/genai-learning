@@ -19,35 +19,93 @@ class MemoryManager:
 
     def load(self): # This function loads the chat history from the specified JSON file.        
         default_history = self.default_history()
+
+        logger.info("memory_stage=load_start file_path=%s", self.file_path)
+
         
         if os.path.exists(self.file_path):
+            logger.info("memory_stage=file_found file_path=%s", self.file_path)
             try:
                 with open(self.file_path, "r") as file:
-                    return json.load(file)
+                    chat_history = json.load(file)
+
+                logger.info(
+                "memory_stage=load_done file_path=%s message_count=%s",
+                self.file_path,
+                len(chat_history)
+            )
+                return chat_history
+                
             except Exception as error: # we are trying to take a backup of our corrupted file by renaming it and if that fails too we return the default memory.
                 backup_file = f"{self.file_path}.backup"
+                logger.warning(
+                    "memory_stage=load_failed file_path=%s error=%s",
+                    self.file_path,
+                    str(error)
+                )
+
                 try:
                     os.rename(self.file_path, backup_file)
-                    logger.warning("Corrupted memory backed up as %s", backup_file)
+                    logger.warning(
+                        "memory_stage=backup_created original_file=%s backup_file=%s",
+                        self.file_path,
+                        backup_file
+                    )
+
                 except Exception as backup_error: 
-                    logger.warning("Failed to create backup file %s", backup_file)
+                    logger.warning(
+                        "memory_stage=backup_failed original_file=%s backup_file=%s error=%s",
+                        self.file_path,
+                        backup_file,
+                        str(backup_error)
+                    )
+
+                logger.warning(
+                    "memory_stage=load_fallback_default file_path=%s default_message_count=%s",
+                    self.file_path,
+                    len(default_history)
+                )
+                return default_history
             
-                logger.warning("Failed to load memory. Using default history.")
+        logger.info(
+        "memory_stage=file_missing_using_default file_path=%s default_message_count=%s",
+        self.file_path,
+        len(default_history)
+        )
         
         return default_history
     
 
 
     def save(self, chat_history): # This function saves the current chat history to the specified JSON file. It opens the file in write mode and writes the chat_history list as JSON data. This allows us to persist the conversation history so that it can be loaded again in future sessions, maintaining continuity in the interactions with the chatbot.
+        logger.info(
+            "memory_stage=save_start file_path=%s message_count=%s",
+            self.file_path,
+            len(chat_history)
+        )
+
         with open(self.file_path, "w") as file:
             json.dump(chat_history, file, indent=4)
+
+        logger.info(
+        "memory_stage=save_done file_path=%s message_count=%s",
+        self.file_path,
+        len(chat_history)
+    )
 
 
 
     def clear(self):
         default_history = self.default_history()
+        logger.info("memory_stage=clear_start file_path=%s", self.file_path)
 
         with open(self.file_path, "w") as file:
             json.dump(default_history, file, indent=4)
+            
+        logger.info(
+        "memory_stage=clear_done file_path=%s message_count=%s",
+        self.file_path,
+        len(default_history)
+    )
 
         return default_history

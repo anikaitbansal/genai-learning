@@ -19,49 +19,131 @@ class ChatService:
 
         if not cleaned_message:
             raise ValueError("Input message cannot be empty or whitespace.")
-
-        chat_history = self.memory.load()
-        intent = classify_intent(cleaned_message)
+        
+        logger.info(
+            "[request_id=%s] flow=start session_id=%s message_length=%s use_rag=%s debug=%s",
+            request_id,
+            session_id,
+            len(cleaned_message),
+            use_rag,
+            debug or self.debug
+        )
 
         logger.info(
-            "[request_id=%s] Session %s classified intent: %s", 
-            request_id, 
-            session_id, 
-            intent)
+            "[request_id=%s] flow=memory_load_start session_id=%s",
+            request_id,
+            session_id
+        )
+
+        chat_history = self.memory.load()
+        logger.info(
+            "[request_id=%s] flow=memory_load_done session_id=%s history_messages=%s",
+            request_id,
+            session_id,
+            len(chat_history)
+        )
+
+        logger.info(
+            "[request_id=%s] flow=classify_start session_id=%s",
+            request_id,
+            session_id
+        )
+
+
+        intent = classify_intent(cleaned_message)
+        logger.info(
+            "[request_id=%s] flow=classify_done session_id=%s intent=%s",
+            request_id,
+            session_id,
+            intent
+        )
+
 
         retrieved_chunks = []
         rag_used = False
 
         if use_rag:
+            logger.info(
+                "[request_id=%s] flow=retrieve_start session_id=%s top_k=%s",
+                request_id,
+                session_id,
+                RAG_TOP_K
+            )
+
             retrieved_chunks = self.retriever.retrieve(cleaned_message, top_k=RAG_TOP_K)
             rag_used = len(retrieved_chunks) > 0
 
             if rag_used:
+                top_chunk_summary = ", ".join(
+                    f"{chunk['id']}:{chunk['score']}"
+                    for chunk in retrieved_chunks[:3]
+                )
                 logger.info(
-                    "[request_id=%s] Session %s vector retrieval returned %s chunks after threshold filtering",
+                    "[request_id=%s] flow=retrieve_done session_id=%s rag_used=%s retrieved_count=%s top_chunks=%s",
                     request_id,
                     session_id,
-                    len(retrieved_chunks)
-                    )
+                    rag_used,
+                    len(retrieved_chunks),
+                    top_chunk_summary
+                )
+
             else:
                 logger.info(
-                    "[request_id=%s] Session %s no relevant chunks found after threshold filtering",
+                    "[request_id=%s] flow=retrieve_done session_id=%s rag_used=%s retrieved_count=0",
                     request_id,
-                    session_id
+                    session_id,
+                    rag_used
                 )
 
         else:
             logger.info(
-                "[request_id=%s] Session %s RAG disabled for this request.",
-                    request_id,
-                    session_id
-                )
+                "[request_id=%s] flow=retrieve_skipped session_id=%s rag_used=%s reason=rag_disabled",
+                request_id,
+                session_id,
+                rag_used
+            )
     
 
         handler = handlers.get(intent, handlers["chat"]) # get the correct handler to what intent is otherwise return handler["chat"].
+        logger.info(
+            "[request_id=%s] flow=response_start session_id=%s intent=%s rag_used=%s",
+            request_id,
+            session_id,
+            intent,
+            rag_used
+        )
+
         response = handler(cleaned_message, chat_history, retrieved_chunks=retrieved_chunks)
+        logger.info(
+            "[request_id=%s] flow=response_done session_id=%s intent=%s rag_used=%s response_length=%s",
+            request_id,
+            session_id,
+            intent,
+            rag_used,
+            len(response)
+        )
+
+        logger.info(
+            "[request_id=%s] flow=memory_save_start session_id=%s",
+            request_id,
+            session_id
+        )
 
         self.memory.save(chat_history)
+        logger.info(
+            "[request_id=%s] flow=memory_save_done session_id=%s history_messages=%s",
+            request_id,
+            session_id,
+            len(chat_history)
+        )
+
+        logger.info(
+            "[request_id=%s] flow=db_save_start session_id=%s intent=%s rag_used=%s",
+            request_id,
+            session_id,
+            intent,
+            rag_used
+        )
 
         self.chat_log_repository.save_chat_log(
             session_id=session_id,
@@ -73,9 +155,21 @@ class ChatService:
         )
 
         logger.info(
-            "[request_id=%s] Session %s response generated successfully.", 
-            request_id, 
-            session_id)
+            "[request_id=%s] flow=db_save_done session_id=%s intent=%s rag_used=%s",
+            request_id,
+            session_id,
+            intent,
+            rag_used
+        )
+
+        logger.info(
+            "[request_id=%s] flow=complete session_id=%s intent=%s rag_used=%s response_length=%s",
+            request_id,
+            session_id,
+            intent,
+            rag_used,
+            len(response)
+        )
 
 
         result = {
