@@ -106,9 +106,9 @@ class FAISSRetriever:
                 "score": round(float(score), 4)
             })
 
-            logger.info(
-            "retriever_stage=retrieve_done returned_count=%s",
-            len(results)
+        logger.info(
+        "retriever_stage=retrieve_done returned_count=%s",
+        len(results)
         )
 
         return results

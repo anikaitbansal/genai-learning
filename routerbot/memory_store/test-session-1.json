@@ -2,5 +2,13 @@
     {
         "role": "system",
         "content": "You are a helpful assistant."
+    },
+    {
+        "role": "user",
+        "content": "Explain what RAG is in simple words"
+    },
+    {
+        "role": "assistant",
+        "content": "RAG stands for Retrieval-Augmented Generation. It's a way to improve chatbot answers by first finding relevant information from a knowledge source and then using that information to generate a more accurate and helpful response."
     }
 ]

@@ -5,7 +5,7 @@ import os
 import logging
 
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 MEMORY_DIR = "memory_store"
 logger = logging.getLogger(__name__)
 
