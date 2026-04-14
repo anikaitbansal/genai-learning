@@ -337,3 +337,5 @@ def get_chat_logs(http_request: Request):
     except Exception as error:
         logger.exception("[request_id=%s] Error fetching chat logs", request_id)
         raise HTTPException(status_code=500, detail=str(error))
+    
+    

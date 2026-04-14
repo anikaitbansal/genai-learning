@@ -110,3 +110,5 @@ if __name__ == "__main__":
     print(f"total documents:{result['total_documents']}")
     print(f"total chunks:{result['total_chunks']}")
     print(f"knowledge file: {result['knowledge_file']}")
+
+    

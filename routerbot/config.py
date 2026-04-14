@@ -22,15 +22,19 @@ code
 
 Rules:
 - Allowed outputs are only: chat, summarize, email, code
-- return only one label
+- Return only one label
 - Do not explain
 - Do not add punctuation
 - Do not add extra words
 - Do not add new lines
-- If the user asks to summarize, shorten, or explain briefly, output summarize
+
+Classification rules:
+- If the user asks to summarize, shorten, condense, or explain briefly, output summarize
 - If the user asks to write, draft, compose, send, or reply to an email or message, output email
-- If the user asks about code, programming, bugs, debugging, errors, or fixing code, output code
-- Otherwise output chat
+- Output code only when the user is asking to write code, fix code, debug code, explain code, analyze an error, or help with programming syntax or implementation
+- If the user is asking about a technical concept in simple words, theory, meaning, definition, comparison, or explanation, output chat
+- If the message is general conversation, explanation, or knowledge question, output chat
+- When unsure, output chat
 """
 
 
