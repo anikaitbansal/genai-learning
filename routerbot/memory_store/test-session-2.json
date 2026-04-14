@@ -10,5 +10,13 @@
     {
         "role": "assistant",
         "content": "FastAPI is a modern, fast (high-performance), web framework for building APIs with Python 3.7+ based on standard Python type hints. It's designed to be fast, scalable, and easy to use, making it a popular choice for building web APIs.\n\nSome of its key features include:\n\n1. **High-performance**: FastAPI is built on top of standard Python type hints, which allows it to take advantage of Python's type checking and auto-completion features.\n2. **Async/await support**: FastAPI supports asynchronous programming using the async/await syntax, making it easy to write concurrent code.\n3. **Automatic API documentation**: FastAPI generates automatic API documentation using Swagger UI, making it easy to understand and use your API.\n4. **Support for web sockets**: FastAPI supports web sockets, allowing you to build real-time applications.\n5. **Extensive support for Python 3.7+ features**: FastAPI takes advantage of the latest features in Python 3.7+, including type hints, async/await, and more.\n\nOverall, FastAPI is a powerful and flexible framework for building web APIs with Python."
+    },
+    {
+        "role": "user",
+        "content": "Summarize this: Python is a programming language used for web development, AI, automation, and data analysis."
+    },
+    {
+        "role": "assistant",
+        "content": "Python is a versatile programming language used for various applications, including web development, artificial intelligence (AI), automation, and data analysis."
     }
 ]

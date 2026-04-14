@@ -3,6 +3,7 @@ from groq import Groq
 client = Groq() #This creates the connection between your Python code and the Groq API. i don not need to pass the api key here as i have set it up in my environment variables. this is so when i push this code to github, i do not accidentally expose my api key. env is created by running this command in terminal: setx GROQ_API_KEY "gsk_abc123xyz"
 
 MODEL_NAME = "llama-3.1-8b-instant"
+EVALUATOR_MODEL_NAME = "llama-3.1-8b-instant"
 
 RAG_KNOWLEDGE_FILE = "knowledge_base.json"
 RAG_METADATA_FILE = "knowledge_metadata.json"
@@ -30,5 +31,40 @@ Rules:
 - If the user asks to write, draft, compose, send, or reply to an email or message, output email
 - If the user asks about code, programming, bugs, debugging, errors, or fixing code, output code
 - Otherwise output chat
+"""
+
+
+evaluation_prompt = """You are a strict response evaluator.
+
+You will be given:
+1. User input
+2. Bot response
+
+Your job is to judge whether the bot response correctly answers the user.
+
+Return output in exactly this format only:
+
+score: correct
+reason: <short reason>
+
+OR
+
+score: partially_correct
+reason: <short reason>
+
+OR
+
+score: incorrect
+reason: <short reason>
+
+Rules:
+- Allowed scores are only: correct, partially_correct, incorrect
+- Keep the reason short, specific, and practical
+- Judge the bot response only against the user's actual request
+- Do not invent issues that are not clearly present
+- If the response misses the main point, say what main point was missed
+- If the response is partly right but misses an important detail, use partially_correct
+- If the response answers a different question than what the user asked, use incorrect
+- Do not add extra text
 """
 

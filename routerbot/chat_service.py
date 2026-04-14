@@ -2,6 +2,7 @@ import logging
 from routing import classify_intent, handlers
 from config import RAG_TOP_K
 from chat_log_repository import ChatLogRepository
+from response_evaluator import ResponseEvaluator
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +12,7 @@ class ChatService:
         self.debug = debug
         self.retriever = retriever
         self.chat_log_repository = ChatLogRepository()
+        self.response_evaluator = ResponseEvaluator()
         
 
 
@@ -124,6 +126,26 @@ class ChatService:
         )
 
         logger.info(
+            "[request_id=%s] flow=evaluation_start session_id=%s intent=%s",
+            request_id,
+            session_id,
+            intent
+        )
+
+        evaluation_result = self.response_evaluator.evaluate(
+            user_input=cleaned_message,
+            bot_response=response
+        )
+
+        logger.info(
+            "[request_id=%s] flow=evaluation_done session_id=%s score=%s reason=%s",
+            request_id,
+            session_id,
+            evaluation_result["score"],
+            evaluation_result["reason"]
+        )
+
+        logger.info(
             "[request_id=%s] flow=memory_save_start session_id=%s",
             request_id,
             session_id
@@ -182,5 +204,6 @@ class ChatService:
 
         if debug or self.debug:
             result["retrieved_chunks"] = retrieved_chunks
+            result["evaluation"] = evaluation_result
 
         return result
