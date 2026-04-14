@@ -23,6 +23,7 @@ evaluation_chain = EVALUATION_PROMPT | evaluator_llm | evaluation_parser
 
 class ResponseEvaluator:
     def evaluate(self, user_input, bot_response):
+        
         try:
             raw_output = evaluation_chain.invoke({
                 "user_input": user_input,

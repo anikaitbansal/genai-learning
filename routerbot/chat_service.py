@@ -56,7 +56,8 @@ class ChatService:
             "retrieved_chunks": [],
             "rag_used": False,
             "bot_reply": "",
-            "evaluation": {}
+            "evaluation": {},
+            "retry_count": 0
         }
 
         final_state = self.graph.invoke(initial_state)

@@ -67,73 +67,80 @@ def build_history_text(chat_history, use_history=True):
 
 
             
-def generate_response(system_prompt, user_input, chat_history, use_history=True, retrieved_chunks=None): #  this is a function that generates a response from the AI based on the provided system prompt, user input, and optional chat history. It constructs the messages for the API call, including the system prompt and user input, and optionally includes the chat history if provided. The function then makes an API call to the Groq client to get the AI's response, which is returned as a string.
-    
+def generate_response(
+    system_prompt,
+    user_input,
+    chat_history,
+    use_history=True,
+    retrieved_chunks=None,
+    save_to_history=True
+):
     final_system_prompt = build_rag_prompt(system_prompt, retrieved_chunks or [])
     
     history_text = build_history_text(chat_history, use_history=use_history)
 
-    # Create chain
     chain = RESPONSE_PROMPT | llm | output_parser
 
-    # Run chain
     bot_reply = chain.invoke({
         "system_prompt": final_system_prompt,
         "history": history_text,
         "input": user_input
     })
 
-
-
-    if use_history:
+    if use_history and save_to_history:
         chat_history.append({"role": "user", "content": user_input})
         chat_history.append({"role": "assistant", "content": bot_reply})
 
-    if len(chat_history) > 11: # We check if the length of the chat history exceeds 10 messages, and if it does, we remove the oldest messages from the beginning of the list. This helps to keep the chat history manageable and prevents it from growing indefinitely, which could lead to performance issues or excessive memory usage. By maintaining a maximum of 10 messages in the history, we ensure that the chatbot can still provide relevant responses based on recent interactions while keeping resource usage in check.
-        chat_history[:] = [chat_history[0]] + chat_history[-10:] # We keep the first message (which is typically the system prompt) and the last 10 messages from the chat history, effectively trimming the history to a maximum of 11 messages. This allows us to maintain important context from the beginning of the conversation while ensuring that we have enough recent messages to provide relevant responses without overwhelming the chatbot with too much historical data.
+    if len(chat_history) > 11:
+        chat_history[:] = [chat_history[0]] + chat_history[-10:]
+
     return bot_reply
 
     
 
-def handle_chat(user_input, chat_history, retrieved_chunks=None): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
+def handle_chat(user_input, chat_history, retrieved_chunks=None, save_to_history=True): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
     return generate_response(
         SYSTEM_PROMPTS["chat"],
         user_input,
         chat_history,
         use_history=True,
-        retrieved_chunks=retrieved_chunks
+        retrieved_chunks=retrieved_chunks,
+        save_to_history=save_to_history
     )
 
 
 
-def handle_summarize(user_input, chat_history, retrieved_chunks=None): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
+def handle_summarize(user_input, chat_history, retrieved_chunks=None, save_to_history=True): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
     return generate_response(
         SYSTEM_PROMPTS["summarize"],
         user_input,
         chat_history,
         use_history=True,
-        retrieved_chunks=retrieved_chunks
+        retrieved_chunks=retrieved_chunks,
+        save_to_history=save_to_history
     )
 
 
 
-def handle_email(user_input, chat_history, retrieved_chunks=None): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
+def handle_email(user_input, chat_history, retrieved_chunks=None, save_to_history=True): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
     return generate_response(
         SYSTEM_PROMPTS["email"],
         user_input,
         chat_history,
         use_history=True,
-        retrieved_chunks=retrieved_chunks
+        retrieved_chunks=retrieved_chunks,
+        save_to_history=save_to_history
     )
 
 
  
 
-def handle_code(user_input, chat_history, retrieved_chunks=None): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
+def handle_code(user_input, chat_history, retrieved_chunks=None, save_to_history=True): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
     return generate_response(
         SYSTEM_PROMPTS["code"],
         user_input,
         chat_history,
         use_history=True,
-        retrieved_chunks=retrieved_chunks
+        retrieved_chunks=retrieved_chunks,
+        save_to_history=save_to_history
     )

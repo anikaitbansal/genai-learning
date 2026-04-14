@@ -11,7 +11,7 @@ def main():
     graph = build_langgraph_flow()
 
     initial_state = {
-        "message": "Explain RAG in simple words",
+        "message": "Summarize the difference between embeddings and FAISS in very simple words and with one example.",
         "chat_history": memory.load(),
         "use_rag": True,
         "retriever": retriever,
@@ -19,7 +19,8 @@ def main():
         "retrieved_chunks": [],
         "rag_used": False,
         "bot_reply": "",
-        "evaluation": {}
+        "evaluation": {},
+        "retry_count": 0
     }
 
     final_state = graph.invoke(initial_state)
