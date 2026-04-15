@@ -99,9 +99,10 @@ def evaluate_node(state: GraphState) -> GraphState:
     state["evaluation_reason"] = evaluation_result.get("reason", "").strip()
 
     logger.info(
-        "graph_node=evaluate_done score=%s reason=%s",
+        "graph_node=evaluate_done score=%s reason=%s retry_count=%s",
         evaluation_result["score"],
-        state["evaluation_reason"]
+        state["evaluation_reason"],
+        state["retry_count"]
     )
     return state
 
@@ -110,7 +111,7 @@ def prepare_retry_node(state: GraphState) -> GraphState:
     state["retry_count"] += 1
 
     logger.info(
-        "graph_node=prepare_retry retry_count=%s evaluation_reason=%s",
+        "graph_node=prepare_retry retry_count=%s reason=%s",
         state["retry_count"],
         state.get("evaluation_reason", "")
     )
@@ -121,14 +122,25 @@ def route_after_evaluation(state: GraphState) -> str:
     score = state["evaluation"].get("score", "incorrect")
 
     if score == "correct":
-        logger.info("graph_route=finish reason=score_correct retry_count=%s", state["retry_count"])
+        logger.info(
+            "graph_route=finish reason=score_correct retry_count=%s",
+            state["retry_count"]
+        )
         return "end"
 
     if state["retry_count"] >= 1:
-        logger.info("graph_route=finish reason=retry_limit_reached score=%s retry_count=%s", score, state["retry_count"])
+        logger.info(
+            "graph_route=finish reason=retry_limit_reached score=%s retry_count=%s",
+            score,
+            state["retry_count"]
+        )
         return "end"
 
-    logger.info("graph_route=retry score=%s retry_count=%s", score, state["retry_count"])
+    logger.info(
+        "graph_route=retry reason=score_%s retry_count=%s",
+        score,
+        state["retry_count"]
+    )
     return "prepare_retry"
 
 
