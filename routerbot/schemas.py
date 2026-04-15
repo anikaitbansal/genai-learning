@@ -8,7 +8,6 @@ class ChatRequest(BaseModel):
     debug: bool = False
 
 
-
 class RetrievedChunk(BaseModel):
     id: str
     title: str
@@ -16,11 +15,9 @@ class RetrievedChunk(BaseModel):
     score: float
 
 
-
 class EvaluationResult(BaseModel):
     score: str
     reason: str
-
 
 
 class ChatResponse(BaseModel):
@@ -31,7 +28,8 @@ class ChatResponse(BaseModel):
     rag_used: bool
     retrieved_chunks: list[RetrievedChunk] | None = None
     evaluation: EvaluationResult | None = None
-
+    retry_count: int | None = None
+    retry_happened: bool | None = None
 
 
 class ResetResponse(BaseModel):
@@ -39,10 +37,8 @@ class ResetResponse(BaseModel):
     session_id: str
 
 
-
 class ResetRequest(BaseModel):
     session_id: str = Field(..., min_length=1)
-
 
 
 class FeedbackRequest(BaseModel):
@@ -52,12 +48,10 @@ class FeedbackRequest(BaseModel):
     comments: str | None = None
 
 
-
 class FeedbackSummaryResponse(BaseModel):
     total_feedback: int
     average_rating: float
     rating_counts: dict[str, int]
-
 
 
 class BuildKnowledgeBaseResponse(BaseModel):

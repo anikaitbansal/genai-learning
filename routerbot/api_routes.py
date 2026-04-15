@@ -21,7 +21,7 @@ def health():
 
 
 
-@router.post("/chat", response_model=ChatResponse, tags=["chat"])
+@router.post("/chat", response_model=ChatResponse, response_model_exclude_none=True, tags=["chat"])
 def chat(request: ChatRequest, http_request: Request):
     request_id = http_request.state.request_id
 
@@ -78,7 +78,7 @@ def chat(request: ChatRequest, http_request: Request):
 
 
 
-@router.post("/chat-form", response_model=ChatResponse, tags=["chat"])
+@router.post("/chat-form", response_model=ChatResponse, response_model_exclude_none=True,  tags=["chat"])
 def chat_form(
     http_request: Request,
     message: str = Form(...),

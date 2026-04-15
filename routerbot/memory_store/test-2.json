@@ -1,0 +1,14 @@
+[
+    {
+        "role": "system",
+        "content": "You are a helpful assistant."
+    },
+    {
+        "role": "user",
+        "content": "who is anikait bansal and where does he live?"
+    },
+    {
+        "role": "assistant",
+        "content": "I couldn't find any information about a person named Anikait Bansal. It's possible that Anikait Bansal is a private individual or not a public figure, so there may not be any available information about them. If you could provide more context or details about who Anikait Bansal is or what they are known for, I may be able to help you better."
+    }
+]
