@@ -48,7 +48,7 @@ class ChatService:
         )
 
         initial_state = {
-            "message": cleaned_message,
+            "original_message": cleaned_message,
             "chat_history": chat_history,
             "use_rag": use_rag,
             "retriever": self.retriever,
@@ -57,6 +57,7 @@ class ChatService:
             "rag_used": False,
             "bot_reply": "",
             "evaluation": {},
+            "evaluation_reason": "",
             "retry_count": 0
         }
 

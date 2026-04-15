@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class GraphState(TypedDict):
-    message: str
+    original_message: str
     chat_history: list[dict[str, str]]
     use_rag: bool
     retriever: Any
@@ -19,13 +19,14 @@ class GraphState(TypedDict):
     rag_used: bool
     bot_reply: str
     evaluation: dict[str, str]
+    evaluation_reason: str
     retry_count: int
 
 
 def classify_node(state: GraphState) -> GraphState:
-    logger.info("graph_node=classify_start message_length=%s", len(state["message"]))
+    logger.info("graph_node=classify_start message_length=%s", len(state["original_message"]))
 
-    intent = classify_intent(state["message"])
+    intent = classify_intent(state["original_message"])
     state["intent"] = intent
 
     logger.info("graph_node=classify_done intent=%s", intent)
@@ -40,7 +41,7 @@ def retrieve_node(state: GraphState) -> GraphState:
 
     if state["use_rag"]:
         retrieved_chunks = state["retriever"].retrieve(
-            state["message"],
+            state["original_message"],
             top_k=RAG_TOP_K
         )
         rag_used = len(retrieved_chunks) > 0
@@ -70,10 +71,12 @@ def generate_node(state: GraphState) -> GraphState:
     save_to_history = state["retry_count"] == 0
 
     bot_reply = handler(
-        state["message"],
+        state["original_message"],
         state["chat_history"],
         retrieved_chunks=state["retrieved_chunks"],
-        save_to_history=save_to_history
+        save_to_history=save_to_history,
+        retry_reason=state.get("evaluation_reason", ""),
+        retry_count=state["retry_count"]
     )
 
     state["bot_reply"] = bot_reply
@@ -88,23 +91,29 @@ def evaluate_node(state: GraphState) -> GraphState:
     evaluator = ResponseEvaluator()
 
     evaluation_result = evaluator.evaluate(
-        user_input=state["message"],
+        user_input=state["original_message"],
         bot_response=state["bot_reply"]
     )
 
     state["evaluation"] = evaluation_result
+    state["evaluation_reason"] = evaluation_result.get("reason", "").strip()
 
     logger.info(
         "graph_node=evaluate_done score=%s reason=%s",
         evaluation_result["score"],
-        evaluation_result["reason"]
+        state["evaluation_reason"]
     )
     return state
 
 
 def prepare_retry_node(state: GraphState) -> GraphState:
     state["retry_count"] += 1
-    logger.info("graph_node=prepare_retry retry_count=%s", state["retry_count"])
+
+    logger.info(
+        "graph_node=prepare_retry retry_count=%s evaluation_reason=%s",
+        state["retry_count"],
+        state.get("evaluation_reason", "")
+    )
     return state
 
 

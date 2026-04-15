@@ -35,6 +35,8 @@ Classification rules:
 - If the user is asking about a technical concept in simple words, theory, meaning, definition, comparison, or explanation, output chat
 - If the message is general conversation, explanation, or knowledge question, output chat
 - When unsure, output chat
+- If given any iinstructions follow them strictly.
+-Ask for context it the user message is vague. 
 """
 
 
@@ -70,5 +72,6 @@ Rules:
 - If the response is partly right but misses an important detail, use partially_correct
 - If the response answers a different question than what the user asked, use incorrect
 - Do not add extra text
+- check if the user input instructions were strictly matched. 
 """
 

@@ -73,10 +73,21 @@ def generate_response(
     chat_history,
     use_history=True,
     retrieved_chunks=None,
-    save_to_history=True
+    save_to_history=True,
+    retry_reason="",
+    retry_count=0
 ):
     final_system_prompt = build_rag_prompt(system_prompt, retrieved_chunks or [])
-    
+
+    if retry_count == 1 and retry_reason.strip():
+        final_system_prompt = (
+            f"{final_system_prompt}\n\n"
+            f"The previous answer was not good enough.\n"
+            f"Issue to fix: {retry_reason.strip()}\n"
+            f"Answer the user's original request again more accurately.\n"
+            f"Strictly fix the issue above."
+        )
+
     history_text = build_history_text(chat_history, use_history=use_history)
 
     chain = RESPONSE_PROMPT | llm | output_parser
@@ -98,49 +109,53 @@ def generate_response(
 
     
 
-def handle_chat(user_input, chat_history, retrieved_chunks=None, save_to_history=True): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
+def handle_chat(user_input, chat_history, retrieved_chunks=None, save_to_history=True, retry_reason="", retry_count=0):
     return generate_response(
         SYSTEM_PROMPTS["chat"],
         user_input,
         chat_history,
         use_history=True,
         retrieved_chunks=retrieved_chunks,
-        save_to_history=save_to_history
+        save_to_history=save_to_history,
+        retry_reason=retry_reason,
+        retry_count=retry_count
     )
 
 
-
-def handle_summarize(user_input, chat_history, retrieved_chunks=None, save_to_history=True): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
+def handle_summarize(user_input, chat_history, retrieved_chunks=None, save_to_history=True, retry_reason="", retry_count=0):
     return generate_response(
         SYSTEM_PROMPTS["summarize"],
         user_input,
         chat_history,
         use_history=True,
         retrieved_chunks=retrieved_chunks,
-        save_to_history=save_to_history
+        save_to_history=save_to_history,
+        retry_reason=retry_reason,
+        retry_count=retry_count
     )
 
 
-
-def handle_email(user_input, chat_history, retrieved_chunks=None, save_to_history=True): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
+def handle_email(user_input, chat_history, retrieved_chunks=None, save_to_history=True, retry_reason="", retry_count=0):
     return generate_response(
         SYSTEM_PROMPTS["email"],
         user_input,
         chat_history,
         use_history=True,
         retrieved_chunks=retrieved_chunks,
-        save_to_history=save_to_history
+        save_to_history=save_to_history,
+        retry_reason=retry_reason,
+        retry_count=retry_count
     )
 
 
- 
-
-def handle_code(user_input, chat_history, retrieved_chunks=None, save_to_history=True): #  this is a function that takes the user's input as an argument and classifies the intent of the message based on the defined rules in the classifier_prompt. It makes an API call to the Groq client to get the classification result, which is then returned as a string.
+def handle_code(user_input, chat_history, retrieved_chunks=None, save_to_history=True, retry_reason="", retry_count=0):
     return generate_response(
         SYSTEM_PROMPTS["code"],
         user_input,
         chat_history,
         use_history=True,
         retrieved_chunks=retrieved_chunks,
-        save_to_history=save_to_history
+        save_to_history=save_to_history,
+        retry_reason=retry_reason,
+        retry_count=retry_count
     )
