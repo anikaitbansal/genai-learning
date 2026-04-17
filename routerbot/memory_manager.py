@@ -77,21 +77,24 @@ class MemoryManager:
     
 
 
-    def save(self, chat_history): # This function saves the current chat history to the specified JSON file. It opens the file in write mode and writes the chat_history list as JSON data. This allows us to persist the conversation history so that it can be loaded again in future sessions, maintaining continuity in the interactions with the chatbot.
+    def save(self, chat_history):
         logger.info(
             "memory_stage=save_start file_path=%s message_count=%s",
             self.file_path,
             len(chat_history)
         )
 
-        with open(self.file_path, "w") as file:
+
+        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+
+        with open(self.file_path, "w", encoding="utf-8") as file:
             json.dump(chat_history, file, indent=4)
 
         logger.info(
-        "memory_stage=save_done file_path=%s message_count=%s",
-        self.file_path,
-        len(chat_history)
-    )
+            "memory_stage=save_done file_path=%s message_count=%s",
+            self.file_path,
+            len(chat_history)
+        )
 
 
 
