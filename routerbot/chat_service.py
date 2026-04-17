@@ -75,18 +75,48 @@ class ChatService:
         )
 
         logger.info(
-            "[request_id=%s] flow=memory_save_start session_id=%s",
+            "[request_id=%s] flow=memory_update_start session_id=%s",
             request_id,
             session_id
         )
 
-        self.memory.save(chat_history)
-        logger.info(
-            "[request_id=%s] flow=memory_save_done session_id=%s history_messages=%s",
-            request_id,
-            session_id,
-            len(chat_history)
-        )
+        should_save_to_memory = True
+
+        if should_save_to_memory:
+            chat_history.append({"role": "user", "content": cleaned_message})
+            chat_history.append({"role": "assistant", "content": response})
+
+            if len(chat_history) > 11:
+                chat_history[:] = [chat_history[0]] + chat_history[-10:]
+
+            logger.info(
+                "[request_id=%s] flow=memory_update_done session_id=%s history_messages=%s",
+                request_id,
+                session_id,
+                len(chat_history)
+            )
+
+            logger.info(
+                "[request_id=%s] flow=memory_save_start session_id=%s",
+                request_id,
+                session_id
+            )
+
+            self.memory.save(chat_history)
+
+            logger.info(
+                "[request_id=%s] flow=memory_save_done session_id=%s history_messages=%s",
+                request_id,
+                session_id,
+                len(chat_history)
+            )
+
+        else:
+            logger.info(
+                "[request_id=%s] flow=memory_save_skipped session_id=%s",
+                request_id,
+                session_id
+            )
 
         logger.info(
             "[request_id=%s] flow=db_save_start session_id=%s intent=%s rag_used=%s",

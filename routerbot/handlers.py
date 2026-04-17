@@ -73,7 +73,6 @@ def generate_response(
     chat_history,
     use_history=True,
     retrieved_chunks=None,
-    save_to_history=True,
     retry_reason="",
     retry_count=0
 ):
@@ -98,64 +97,54 @@ def generate_response(
         "input": user_input
     })
 
-    if use_history and save_to_history:
-        chat_history.append({"role": "user", "content": user_input})
-        chat_history.append({"role": "assistant", "content": bot_reply})
-
-    if len(chat_history) > 11:
-        chat_history[:] = [chat_history[0]] + chat_history[-10:]
-
     return bot_reply
 
     
 
-def handle_chat(user_input, chat_history, retrieved_chunks=None, save_to_history=True, retry_reason="", retry_count=0):
+def handle_chat(user_input, chat_history, retrieved_chunks=None, retry_reason="", retry_count=0):
     return generate_response(
         SYSTEM_PROMPTS["chat"],
         user_input,
         chat_history,
         use_history=True,
         retrieved_chunks=retrieved_chunks,
-        save_to_history=save_to_history,
         retry_reason=retry_reason,
         retry_count=retry_count
     )
 
 
-def handle_summarize(user_input, chat_history, retrieved_chunks=None, save_to_history=True, retry_reason="", retry_count=0):
+def handle_summarize(user_input, chat_history, retrieved_chunks=None, retry_reason="", retry_count=0):
     return generate_response(
         SYSTEM_PROMPTS["summarize"],
         user_input,
         chat_history,
         use_history=True,
         retrieved_chunks=retrieved_chunks,
-        save_to_history=save_to_history,
         retry_reason=retry_reason,
         retry_count=retry_count
     )
 
 
-def handle_email(user_input, chat_history, retrieved_chunks=None, save_to_history=True, retry_reason="", retry_count=0):
+def handle_email(user_input, chat_history, retrieved_chunks=None, retry_reason="", retry_count=0):
     return generate_response(
         SYSTEM_PROMPTS["email"],
         user_input,
         chat_history,
         use_history=True,
         retrieved_chunks=retrieved_chunks,
-        save_to_history=save_to_history,
         retry_reason=retry_reason,
         retry_count=retry_count
     )
 
 
-def handle_code(user_input, chat_history, retrieved_chunks=None, save_to_history=True, retry_reason="", retry_count=0):
+def handle_code(user_input, chat_history, retrieved_chunks=None, retry_reason="", retry_count=0):
     return generate_response(
         SYSTEM_PROMPTS["code"],
         user_input,
         chat_history,
         use_history=True,
         retrieved_chunks=retrieved_chunks,
-        save_to_history=save_to_history,
         retry_reason=retry_reason,
         retry_count=retry_count
     )
+

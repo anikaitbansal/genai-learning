@@ -68,13 +68,10 @@ def generate_node(state: GraphState) -> GraphState:
 
     handler = handlers.get(intent, handlers["chat"])
 
-    save_to_history = state["retry_count"] == 0
-
     bot_reply = handler(
         state["original_message"],
         state["chat_history"],
         retrieved_chunks=state["retrieved_chunks"],
-        save_to_history=save_to_history,
         retry_reason=state.get("evaluation_reason", ""),
         retry_count=state["retry_count"]
     )
