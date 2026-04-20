@@ -1,9 +1,10 @@
 import logging
-from fastapi import APIRouter, HTTPException, Request, Form
-from schemas import ChatRequest, ChatResponse, ResetResponse, ResetRequest, FeedbackRequest, FeedbackSummaryResponse, BuildKnowledgeBaseResponse
+from fastapi import APIRouter, HTTPException, Request, Form, UploadFile, File
+from schemas import ChatRequest, ChatResponse, ResetResponse, ResetRequest, FeedbackRequest, FeedbackSummaryResponse, BuildKnowledgeBaseResponse, UploadPDFResponse
 from dependencies import get_memory, build_chat_service, reload_retriever
 from feedback_manager import FeedbackManager
 from build_knowledge_base import build_knowledge_base
+from pdf_ingestion import ingest_pdf_file
 
 logger = logging.getLogger(__name__)
 
@@ -266,6 +267,60 @@ def rebuild_knowledge_base(http_request: Request):
             "[request_id=%s] Error while rebuilding knowledge base: %s",
             request_id,
             str(error)
+        )
+        raise HTTPException(status_code=500, detail=str(error))
+    
+
+
+@router.post("/upload-pdf", response_model=UploadPDFResponse, tags=["documents"])
+async def upload_pdf(file: UploadFile = File(...), http_request: Request = None):
+    request_id = http_request.state.request_id
+
+    try:
+        logger.info(
+            "[request_id=%s] endpoint=/upload-pdf stage=request_received filename=%s content_type=%s",
+            request_id,
+            file.filename,
+            file.content_type
+        )
+
+        if not file.filename.lower().endswith(".pdf"):
+            raise HTTPException(status_code=400, detail="Only PDF files are allowed.")
+
+        file.file.seek(0)
+        result = ingest_pdf_file(file.file, file.filename)
+
+        logger.info(
+            "[request_id=%s] endpoint=/upload-pdf stage=processing_done filename=%s total_characters=%s total_chunks=%s",
+            request_id,
+            file.filename,
+            result["total_characters"],
+            result["total_chunks"]
+        )
+
+        return {
+            "message": "PDF uploaded and processed successfully.",
+            "filename": file.filename,
+            "document_id": result["document"]["doc_id"],
+            "total_characters": result["total_characters"],
+            "total_chunks": result["total_chunks"],
+            "chunks": result["chunks"]
+        }
+
+    except HTTPException:
+        raise
+
+    except ValueError as error:
+        logger.exception(
+            "[request_id=%s] endpoint=/upload-pdf stage=validation_error",
+            request_id
+        )
+        raise HTTPException(status_code=400, detail=str(error))
+
+    except Exception as error:
+        logger.exception(
+            "[request_id=%s] endpoint=/upload-pdf stage=unexpected_error",
+            request_id
         )
         raise HTTPException(status_code=500, detail=str(error))
     
