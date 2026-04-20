@@ -1,20 +1,16 @@
 from memory_manager import MemoryManager
 from chat_service import ChatService
 from retriever import FAISSRetriever
-import os
 import logging
 
 
 DEBUG_MODE = False
-MEMORY_DIR = "memory_store"
 logger = logging.getLogger(__name__)
 
 _retriever = None
 
 def get_memory(session_id: str):
-    os.makedirs(MEMORY_DIR, exist_ok=True)
-    file_path = os.path.join(MEMORY_DIR, f"{session_id}.json")
-    return MemoryManager(file_path)
+    return MemoryManager(session_id)
 
 
 

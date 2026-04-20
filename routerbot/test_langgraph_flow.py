@@ -6,7 +6,7 @@ from langgraph_flow import build_langgraph_flow
 def main():
     session_id = "test-session"
 
-    memory = MemoryManager("chat_history.json")
+    memory = MemoryManager(session_id)
     retriever = FAISSRetriever()
     graph = build_langgraph_flow()
 

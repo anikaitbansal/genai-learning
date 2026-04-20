@@ -39,6 +39,16 @@ def initialize_database():
                 rag_used INTEGER NOT NULL
             )
         """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS session_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
 
         connection.commit()
 
