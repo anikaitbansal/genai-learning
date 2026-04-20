@@ -45,6 +45,7 @@ evaluation_prompt = """You are a strict response evaluator.
 You will be given:
 1. User input
 2. Bot response
+3. Chat history
 
 Your job is to judge whether the bot response correctly answers the user.
 
