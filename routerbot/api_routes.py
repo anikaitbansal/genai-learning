@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, HTTPException, Request, Form, UploadFile, File
 from schemas import ChatRequest, ChatResponse, ResetResponse, ResetRequest, FeedbackRequest, FeedbackSummaryResponse, BuildKnowledgeBaseResponse, UploadPDFResponse
-from dependencies import get_memory, build_chat_service, reload_retriever
+from dependencies import get_memory, build_chat_service, reload_retriever, get_retriever
 from feedback_manager import FeedbackManager
 from build_knowledge_base import build_knowledge_base
 from pdf_ingestion import ingest_pdf_file
@@ -288,14 +288,20 @@ async def upload_pdf(file: UploadFile = File(...), http_request: Request = None)
             raise HTTPException(status_code=400, detail="Only PDF files are allowed.")
 
         file.file.seek(0)
-        result = ingest_pdf_file(file.file, file.filename)
+
+        retriever = get_retriever()
+
+        result = ingest_pdf_file(file.file, file.filename, retriever)
+
+        reload_retriever()
 
         logger.info(
-            "[request_id=%s] endpoint=/upload-pdf stage=processing_done filename=%s total_characters=%s total_chunks=%s",
+            "[request_id=%s] endpoint=/upload-pdf stage=processing_done filename=%s total_characters=%s total_chunks=%s added_chunks=%s",
             request_id,
             file.filename,
             result["total_characters"],
-            result["total_chunks"]
+            result["total_chunks"],
+            result["added_chunks"]
         )
 
         return {

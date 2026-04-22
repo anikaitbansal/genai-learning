@@ -1,3 +1,4 @@
+import re
 import logging
 from typing import TypedDict, Any
 from langgraph.graph import StateGraph, END
@@ -33,6 +34,32 @@ def classify_node(state: GraphState) -> GraphState:
     return state
 
 
+
+def build_retrieval_query(user_message: str) -> str:
+    cleaned_message = user_message.strip().lower()
+
+    patterns_to_remove = [
+        r"\bhi\b",
+        r"\bhello\b",
+        r"\bhey\b",
+        r"\bthanks\b",
+        r"\bplease\b",
+        r"\bbuddy\b",
+        r"\banikait here\b",
+        r"\bi am anikait\b",
+        r"\bcan you tell me\b",
+        r"\bcould you tell me\b"
+    ]
+
+    for pattern in patterns_to_remove:
+        cleaned_message = re.sub(pattern, " ", cleaned_message)
+
+    cleaned_message = re.sub(r"\s+", " ", cleaned_message).strip()
+
+    return cleaned_message or user_message.strip()
+
+
+
 def retrieve_node(state: GraphState) -> GraphState:
     logger.info("graph_node=retrieve_start use_rag=%s", state["use_rag"])
 
@@ -40,10 +67,19 @@ def retrieve_node(state: GraphState) -> GraphState:
     rag_used = False
 
     if state["use_rag"]:
-        retrieved_chunks = state["retriever"].retrieve(
+        retrieval_query = build_retrieval_query(state["original_message"])
+
+        logger.info(
+            "graph_node=retrieve_query_built original_message=%s retrieval_query=%s",
             state["original_message"],
+            retrieval_query
+        )
+
+        retrieved_chunks = state["retriever"].retrieve(
+            retrieval_query,
             top_k=RAG_TOP_K
         )
+        
         rag_used = len(retrieved_chunks) > 0
 
     state["retrieved_chunks"] = retrieved_chunks

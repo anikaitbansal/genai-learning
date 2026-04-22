@@ -37,17 +37,18 @@ def build_rag_prompt(base_prompt, retrieved_chunks):
             f"Context {index}:\n"
             f"Title: {chunk['title']}\n"
             f"Content: {chunk['content']}"
-            )
-    
+        )
+
     joined_context = "\n\n".join(context_lines)
-    
+
     return (
         f"{base_prompt}\n\n"
-        f"Use the retrieved context below only if it is clearly relevant to the user's question.\n"
-        f"If the context helps, use it to answer more accurately.\n"
-        f"If the context is incomplete or not relevant, do not force it into the answer.\n"
-        f"Answer normally if the retrieved context does not help.\n"
-        f"Explain in your own words and do not copy the context word-for-word unless the user asks for an exact quote.\n\n"
+        f"You have been given retrieved context from the knowledge base.\n"
+        f"If the retrieved context is relevant to the user's question, use it as the primary source for your answer.\n"
+        f"Do not say you do not have access to the document, resume, file, or uploaded content if relevant context is already provided below.\n"
+        f"Do not ignore clearly relevant retrieved context.\n"
+        f"If the retrieved context is partial, answer using the available context and say briefly that the answer is based on the retrieved information.\n"
+        f"Keep the answer grounded in the retrieved content and explain in your own words.\n\n"
         f"Retrieved Context:\n{joined_context}"
     )
 

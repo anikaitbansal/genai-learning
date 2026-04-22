@@ -20,8 +20,14 @@ def load_documents():
 
 
 def split_into_sentences(text):
-    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
-    return [sentence.strip() for sentence in sentences if sentence.strip()]
+    if not text or not text.strip():
+        return []
+
+    normalized_text = re.sub(r'\r\n?', '\n', text.strip())
+
+    parts = re.split(r'(?<=[.!?])\s+|\n+', normalized_text)
+
+    return [part.strip() for part in parts if part.strip()]
 
 
 
