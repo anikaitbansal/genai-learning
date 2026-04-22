@@ -123,10 +123,10 @@ class FAISSRetriever:
 
         query_embedding = embed_text(query)
         query_vector = np.array([query_embedding], dtype="float32")
-
         faiss.normalize_L2(query_vector)
 
-        distances, indices = self.index.search(query_vector, top_k)
+        search_k = min(max(top_k * 3, top_k), len(self.metadata))
+        distances, indices = self.index.search(query_vector, search_k)
 
         logger.info(
             "retriever_stage=faiss_search_done raw_scores=%s raw_indices=%s",
@@ -135,6 +135,7 @@ class FAISSRetriever:
         )
 
         results = []
+        seen_contents = set()
 
         for score, idx in zip(distances[0], indices[0]):
             if idx < 0 or idx >= len(self.metadata):
@@ -157,13 +158,35 @@ class FAISSRetriever:
                 continue
 
             chunk = self.metadata[idx]
+            chunk_content = chunk["content"].strip()
+
+            if not chunk_content:
+                logger.info(
+                    "retriever_stage=chunk_skipped reason=empty_content chunk_id=%s",
+                    chunk["id"]
+                )
+                continue
+
+            normalized_content = " ".join(chunk_content.split()).lower()
+
+            if normalized_content in seen_contents:
+                logger.info(
+                    "retriever_stage=chunk_skipped reason=duplicate_content chunk_id=%s",
+                    chunk["id"]
+                )
+                continue
+
+            seen_contents.add(normalized_content)
 
             results.append({
                 "id": chunk["id"],
                 "title": chunk["title"],
                 "content": chunk["content"],
-                "score": round(float(score), 4)
+                "score": round(similarity_score, 4)
             })
 
-        logger.info(f"retriever_stage=retrieve_done returned_count={len(results)}")
+            if len(results) >= top_k:
+                break
+
+        logger.info("retriever_stage=retrieve_done returned_count=%s", len(results))
         return results

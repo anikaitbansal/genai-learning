@@ -31,27 +31,24 @@ def split_into_sentences(text):
 
 
 
-def build_chunks_from_document(document, chunk_size=CHUNK_SIZE):
+def build_chunks_from_document(document, chunk_size=8):
+    if not isinstance(document, dict):
+        return []
 
-    if not isinstance(document,dict):
-        return[]
-    
     doc_id = document.get("doc_id")
-
     if not doc_id:
         return []
-    
-    content = document.get("content","").strip()
 
+    content = document.get("content", "").strip()
     if not content:
         return []
-    
-    sentences = split_into_sentences(content)
+
+    lines = [line.strip() for line in content.splitlines() if line.strip()]
     chunks = []
 
-    for index in range(0, len(sentences), chunk_size):
-        chunk_sentences = sentences[index:index + chunk_size]
-        chunk_text = " ".join(chunk_sentences).strip()
+    for index in range(0, len(lines), chunk_size):
+        chunk_lines = lines[index:index + chunk_size]
+        chunk_text = "\n".join(chunk_lines).strip()
 
         if not chunk_text:
             continue

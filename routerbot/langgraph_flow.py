@@ -36,27 +36,35 @@ def classify_node(state: GraphState) -> GraphState:
 
 
 def build_retrieval_query(user_message: str) -> str:
-    cleaned_message = user_message.strip().lower()
+    cleaned = user_message.strip().lower()
 
-    patterns_to_remove = [
-        r"\bhi\b",
-        r"\bhello\b",
-        r"\bhey\b",
-        r"\bthanks\b",
-        r"\bplease\b",
-        r"\bbuddy\b",
-        r"\banikait here\b",
-        r"\bi am anikait\b",
-        r"\bcan you tell me\b",
-        r"\bcould you tell me\b"
-    ]
+    # Remove fluff
+    cleaned = re.sub(r"\b(hi|hello|hey|thanks|please|buddy)\b", " ", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
 
-    for pattern in patterns_to_remove:
-        cleaned_message = re.sub(pattern, " ", cleaned_message)
+    # 🔥 Smart query transformation
+    if "name" in cleaned:
+        return "person name full name candidate resume cv"
 
-    cleaned_message = re.sub(r"\s+", " ", cleaned_message).strip()
+    if "phone" in cleaned or "number" in cleaned:
+        return "phone number contact mobile resume"
 
-    return cleaned_message or user_message.strip()
+    if "email" in cleaned:
+        return "email address contact resume"
+
+    if "link" in cleaned or "linkedin" in cleaned or "github" in cleaned:
+        return "links linkedin github portfolio resume"
+
+    if "skills" in cleaned:
+        return "technical skills languages tools resume"
+
+    if "experience" in cleaned or "work" in cleaned:
+        return "work experience company role resume"
+
+    if "summary" in cleaned or "about" in cleaned:
+        return "summary profile description resume"
+
+    return cleaned
 
 
 
