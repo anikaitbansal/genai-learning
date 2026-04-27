@@ -13,20 +13,20 @@ Production-style GenAI chatbot with FastAPI, LangGraph, RAG (FAISS + embeddings)
 - Dockerized deployment
 
 # Tech Stack
-Python
-FastAPI 
-LangChain
-LangGraph
-Groq API
-FAISS
-SentenceTransformers
-SQLite
-Streamlit 
-Docker
+Python,
+FastAPI, 
+LangChain,
+LangGraph,
+Groq API,
+FAISS,
+SentenceTransformers,
+SQLite,
+Streamlit, 
+Docker,
 
 # Run Instructions
-docker-compose up --build
-streamlit run streamlit_app.py
+- docker-compose up --build
+- streamlit run streamlit_app.py
 
 # Limitations
 - Retrieval depends on chunk quality
