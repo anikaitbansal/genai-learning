@@ -3,6 +3,7 @@ import argparse
 from memory_manager import MemoryManager
 from chat_service import ChatService
 from retriever import FAISSRetriever
+from app_database import initialize_database
 
 retriever = FAISSRetriever()
 
@@ -59,6 +60,7 @@ class Chatbot:
 #    def run(self):
 
 def main(debug=False): # This is the main function that serves as the entry point of the program. It takes an optional debug parameter that allows us to enable or disable debug mode when running the chatbot. If debug mode is enabled, it prints a message indicating that debug mode is on. Then, it creates an instance of the Chatbot class, passing the debug parameter to its constructor, and calls the run method to start the chatbot's interaction loop.
+    initialize_database()
     if debug:
         print("Debug mode is ON.")
     bot = Chatbot(debug)

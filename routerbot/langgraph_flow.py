@@ -75,8 +75,7 @@ def retrieve_node(state: GraphState) -> GraphState:
     rag_used = False
 
     if state["use_rag"]:
-        retrieval_query = build_retrieval_query(state["original_message"])
-
+        retrieval_query = state["original_message"]
         logger.info(
             "graph_node=retrieve_query_built original_message=%s retrieval_query=%s",
             state["original_message"],

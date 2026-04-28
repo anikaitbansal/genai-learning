@@ -65,6 +65,8 @@ def build_chunks_from_document(document, chunk_size=8):
 
 
 def build_knowledge_base():
+    os.makedirs(os.path.dirname(RAG_METADATA_FILE), exist_ok=True)
+
     documents = load_documents()
     metadata = []
     embedding_vectors=[]
@@ -96,6 +98,9 @@ def build_knowledge_base():
         index = faiss.IndexFlatIP(vector_dimension)
         index.add(embedding_matrix)
         faiss.write_index(index,FAISS_INDEX_FILE)
+    else:
+        if os.path.exists(FAISS_INDEX_FILE):
+            os.remove(FAISS_INDEX_FILE)
 
 
     return{
